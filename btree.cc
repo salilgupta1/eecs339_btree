@@ -544,6 +544,7 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 	}
 	else
 	{
+		// add to list of nodes we've checked
 		checkedNodes.insert(node);
 	}
 
@@ -567,23 +568,28 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 		}		
 		case BTREE_ROOT_NODE:
 		{
+			// traverse to node's keys
 			for (offset=0;offset<b.info.numkeys;offset++)
 			{
+				// get the key
 				rc = b.GetKey(offset,testKey);
 				if(rc)
 				{
 					return rc;
 				}
-				// checks to make sure the keys are sorted out
+
+				// get the next key
 				if(offset+1<b.info.numkeys)
 				{
 					rc = b.GetKey(offset+1, tempKey);
 					if(rc){return rc;}
+					// check to make sure the keys are sorted
 					if(tempKey < testKey)
 					{
 						return ERROR_BADORDER;
 					}
 				}
+				// get the ptr to the next level
 				rc = b.GetPtr(offset,ptr);
 				if(rc)
 				{
@@ -597,13 +603,15 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 			}
 			if(b.info.numkeys > 0)
 			{
+				// get the very last ptr in the block 
 				rc = b.GetPtr(b.info.numkeys,ptr);
 				if (rc){ return rc;}
+				// recurse to the next level
 				return SanityCheckHelper(checkedNodes, ptr);
 			}
 			else
 			{
-				// no keys in the node... 
+				// no keys in the node 
 				return ERROR_NONEXISTENT;
 			}
 			return ERROR_NOERROR;
@@ -611,32 +619,40 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 		}
 		case BTREE_LEAF_NODE:
 		{
-			// check for fullness
-			if(b.info.numkeys > (int)(b.info.GetNumSlotsAsLeaf()*(2./3.)))
+			if(b.info.numkeys > 0)
 			{
-				return ERROR_NODEOVERFLOW;
+				// check for fullness
+				if(b.info.numkeys > (int)(b.info.GetNumSlotsAsLeaf()*(2./3.)))
+				{
+					return ERROR_NODEOVERFLOW;
+				}
+				else
+				{
+					// go through keys
+					for(offset = 0; offset < b.info.numkeys; offset++)
+					{
+						rc = b.GetKey(offset,testKey);
+						if (rc)
+						{
+							return rc;
+						}
+						// check for order
+						if(offset+1 < b.info.numkeys)
+						{
+							rc = b.GetKey(offset+1, tempKey);
+							if (rc) {return rc;}
+							if (tempKey < testKey)
+							{
+								return ERROR_BADORDER;
+							}
+						}	
+					}						
+				}
 			}
 			else
 			{
-				// go through keys
-				for(offset = 0; offset < b.info.numkeys; offset++)
-				{
-					rc = b.GetKey(offset,testKey);
-					if (rc)
-					{
-						return rc;
-					}
-					// check for order
-					if(offset+1 < b.info.numkeys)
-					{
-						rc = b.GetKey(offset+1, tempKey);
-						if (rc) {return rc;}
-						if (tempKey < testKey)
-						{
-							return ERROR_BADORDER;
-						}
-					}	
-				}						
+				// leaf node doesn't have keys
+				return ERROR_NONEXISTENT;
 			}
 
 		return ERROR_NOERROR;
