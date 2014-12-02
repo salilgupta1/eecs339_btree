@@ -417,7 +417,8 @@ ERROR_T BTreeIndex::Lookup(const KEY_T &key, VALUE_T &value)
 
 ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
 {
-  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);
+  list<SIZE_T> path;
+  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value, path);
 }
   
 ERROR_T BTreeIndex::Update(const KEY_T &key, const VALUE_T &value)
@@ -566,35 +567,39 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 		}		
 		case BTREE_ROOT_NODE:
 		{
+			for (offset=0;offset<b.info.numkeys;offset++)
+			{
+				rc = b.GetKey(offset,testKey);
+				if(rc)
+				{
+					return rc;
+				}
+				// checks to make sure the keys are sorted out
+				if(offset+1<b.info.numkeys)
+				{
+					rc = b.GetKey(offset+1, tempKey);
+					if(rc){return rc;}
+					if(tempKey < testKey)
+					{
+						return ERROR_BADORDER;
+					}
+				}
+				rc = b.GetPtr(offset,ptr);
+				if(rc)
+				{
+					return rc;
+				}
+				else
+				{					
+					// recurse to the next level 
+					return SanityCheckHelper(checkedNodes, ptr);
+				}						
+			}
 			if(b.info.numkeys > 0)
 			{
-				for (offset=0;offset<=b.info.numkeys;offset++)
-				{
-					rc = b.GetKey(offset,testKey);
-					if(rc)
-					{
-						return rc;
-					}
-					// checks to make sure the keys are sorted out
-					if(offset+1<=b.info.numkeys)
-					{
-						rc = b.GetKey(offset+1, tempKey);
-						if(rc){return rc;}
-						if(tempKey < testKey)
-						{
-							return ERROR_BADORDER;
-						}
-					}
-					if(rc)
-					{
-						return rc;
-					}
-					else
-					{
-						// recurse to the next level 
-						return SanityCheckHelper(checkedNodes, ptr);
-					}						
-				}
+				rc = b.GetPtr(b.info.numkeys,ptr);
+				if (rc){ return rc;}
+				return SanityCheckHelper(checkedNodes, ptr);
 			}
 			else
 			{
@@ -613,36 +618,29 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 			}
 			else
 			{
-				if(b.info.numkeys > 0)
+				// go through keys
+				for(offset = 0; offset < b.info.numkeys; offset++)
 				{
-					// go through keys
-					for(offset = 0; offset <= b.info.numkeys; offset++)
+					rc = b.GetKey(offset,testKey);
+					if (rc)
 					{
-						rc = b.GetKey(offset,testKey);
-						if (rc)
+						return rc;
+					}
+					// check for order
+					if(offset+1 < b.info.numkeys)
+					{
+						rc = b.GetKey(offset+1, tempKey);
+						if (rc) {return rc;}
+						if (tempKey < testKey)
 						{
-							return rc;
+							return ERROR_BADORDER;
 						}
-						// check for order
-						if(offset+1 <= b.info.numkeys)
-						{
-							rc = b.GetKey(offset+1, tempKey);
-							if (rc) {return rc;}
-							if (tempKey < testKey)
-							{
-								return ERROR_BADORDER;
-							}
-						}	
-					}						
-				}
-				else
-				{	// no keys in node
-					return ERROR_NONEXISTENT;
-				}
+					}	
+				}						
 			}
 
-			return ERROR_NOERROR;
-			break;
+		return ERROR_NOERROR;
+		break;
 		}
 		default:
 		{
