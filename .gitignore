@@ -18,3 +18,7 @@ readdisk
 sim
 writebuffer
 writedisk
+*.config
+*.data
+*.bitmap
+*.dot
