@@ -359,7 +359,7 @@ ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
   
 ERROR_T BTreeIndex::Update(const KEY_T &key, const VALUE_T &value)
 {
-  return LookupOrUpdateInternal(superblock.info.rootnode, BTREE_OP_UPDATE, key, value);
+  return LookupOrUpdateInternal(superblock.info.rootnode, BTREE_OP_UPDATE, key, (VALUE_T&) value);
 }
 
   
