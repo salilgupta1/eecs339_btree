@@ -454,19 +454,149 @@ ERROR_T BTreeIndex::Display(ostream &o, BTreeDisplayType display_type) const
 ERROR_T BTreeIndex::SanityCheck() const
 {
   // WRITE ME
-  return ERROR_UNIMPL;
+  
+  set<SIZE_T> checkedNodes;
+  ERROR_T rc;
+  SIZE_T rootNode = superblock.info.rootnode;
+  rc = SanityCheckHelper(checkedNodes, rootNode);
+  return rc;
 }
   
+ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) const
+{
+	BTreeNode b;
+	SIZE_T ptr;
+	SIZE_T offset;
+	ERROR_T rc;
+	KEY_T testKey;
+	KEY_T tempKey;
 
+
+	// check to see if the node has already been checked
+	// if it has then we have an inner loop which is wrong
+	if (checkedNodes.count(node))
+	{
+		return ERROR_INNERLOOP;
+	}
+	else
+	{
+		checkedNodes.insert(node);
+	}
+
+	// unserialize the block
+	rc = b.Unserialize(buffercache, node);
+	if (rc)
+	{
+		return rc;
+	}
+	
+	// root node, interior node and leaf node
+	switch(b.info.node_type)
+	{
+		case BTREE_INTERIOR_NODE:
+		{
+			// checks for overflow(i.e. fullness) in the interior node
+			if((b.info.numkeys) >(int)(b.info.GetNumSlotsAsInterior()* (2./3.)))
+			{
+				return ERROR_NODEOVERFLOW;
+			}
+		}		
+		case BTREE_ROOT_NODE:
+		{
+			if(b.info.numkeys > 0)
+			{
+				for (offset=0;offset<=b.info.numkeys;offset++)
+				{
+					rc = b.GetKey(offset,testKey);
+					if(rc)
+					{
+						return rc;
+					}
+					// checks to make sure the keys are sorted out
+					if(offset+1<=b.info.numkeys)
+					{
+						rc = b.GetKey(offset+1, tempKey);
+						if(rc){return rc;}
+						if(tempKey < testKey)
+						{
+							return ERROR_BADORDER;
+						}
+					}
+					if(rc)
+					{
+						return rc;
+					}
+					else
+					{
+						// recurse to the next level 
+						return SanityCheckHelper(checkedNodes, ptr);
+					}						
+				}
+			}
+			else
+			{
+				// no keys in the node... 
+				return ERROR_NONEXISTENT;
+			}
+			return ERROR_NOERROR;
+			break;
+		}
+		case BTREE_LEAF_NODE:
+		{
+			// check for fullness
+			if(b.info.numkeys > (int)(b.info.GetNumSlotsAsLeaf()*(2./3.)))
+			{
+				return ERROR_NODEOVERFLOW;
+			}
+			else
+			{
+				if(b.info.numkeys > 0)
+				{
+					// go through keys
+					for(offset = 0; offset <= b.info.numkeys; offset++)
+					{
+						rc = b.GetKey(offset,testKey);
+						if (rc)
+						{
+							return rc;
+						}
+						// check for order
+						if(offset+1 <= b.info.numkeys)
+						{
+							rc = b.GetKey(offset+1, tempKey);
+							if (rc) {return rc;}
+							if (tempKey < testKey)
+							{
+								return ERROR_BADORDER;
+							}
+						}	
+					}						
+				}
+				else
+				{	// no keys in node
+					return ERROR_NONEXISTENT;
+				}
+			}
+
+			return ERROR_NOERROR;
+			break;
+		}
+		default:
+		{
+			// the block isn't a node we know about
+			return ERROR_BADNODETYPE;
+			break;
+		}			
+	}
+	return ERROR_NOERROR:
+	
+}
 
 ostream & BTreeIndex::Print(ostream &os) const
 {
-  // WRITE ME
-
   Display(os, BTREE_DEPTH_DOT);
   return os;
 }
-
 
 
 
