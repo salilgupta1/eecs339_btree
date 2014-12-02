@@ -254,7 +254,7 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
 }
 
 
-ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> Path)
+ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> Path) const
 {
   BTreeNode b;
   ERROR_T rc;
@@ -297,7 +297,7 @@ ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val,
     }
     break;
   case BTREE_LEAF_NODE:
-		return Node;
+	return ERROR_NOERROR;
     break;
   default:
     // We can't be looking at anything other than a root, internal, or leaf
@@ -312,7 +312,7 @@ ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val,
 //
 //
 //
-bool isFull(SIZE_T &Node){
+bool isFull(SIZE_T &Node) const{
 	// Checks if a given node is full	
 	return true;
 }
