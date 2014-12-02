@@ -21,3 +21,4 @@ writedisk
 *.config
 *.data
 *.bitmap
+*.dot
