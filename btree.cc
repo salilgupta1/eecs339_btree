@@ -465,6 +465,8 @@ ERROR_T BTreeIndex::SanityCheck() const
 ostream & BTreeIndex::Print(ostream &os) const
 {
   // WRITE ME
+
+  Display(os, BTREE_DEPTH_DOT);
   return os;
 }
 
