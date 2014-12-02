@@ -253,12 +253,10 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
   return ERROR_INSANE;
 }
 
-ERROR_T			 InsertFindNode(const SIZE_T &Node,
-														const KEY_T &key,
-														const VALUE_T &val,
-														list<SIZE_T> Path)
+
+ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> Path)
 {
-	BTreeNode b;
+  BTreeNode b;
   ERROR_T rc;
   SIZE_T offset;
   KEY_T testkey;
@@ -310,11 +308,75 @@ ERROR_T			 InsertFindNode(const SIZE_T &Node,
   return ERROR_INSANE;
 }
 
-ERROR_T      InsertInternal(const SIZE_T &Node,
-                              const KEY_T &key,
-                              const VALUE_T &val)
+//=====HELPER FUNCTIONS FOR INSERTING============//
+//
+//
+//
+bool isFull(SIZE_T &Node){
+	// Checks if a given node is full	
+	return true;
+}
+
+
+ERROR_T InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2){
+	// Distribute key-pointer pairs of L1, plus our new one, into L1 and L2
+}
+
+
+ERROR_T InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
+        // Special stuff
+}
+
+
+ERROR_T InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2){
+        // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
+}
+
+
+ERROR_T InsertIntoUnfilledLeaf(){
+	// Given a key and pointer, along with not full leaf node, add it to the node and sort them
+}
+
+
+ERROR_T InsertIntoUnfilledInteriorOrRoot(){
+        // Given a key and pointer, along with not full interior node (or root?), add it to the node and sort them
+}
+
+
+ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
-	
+
+	// Find leaf node L (capacity n) that new key would be inserted in
+  
+	// If L is not full
+	// 	1. Empty keys into array size n
+	// 	2. Sort them
+	// 	3. Put them back into L
+	// 	4. Done
+
+	// Else if L is full, aka has n keys already
+	// 	1. Split L: Find a node L2 from the free list
+	//
+	//	2. Divide the keys: 
+	//		First ceil (n+1)/2 key-pointer pairs remain in L
+	//		Last floor (n+1)/2 key-pointer pairs go into L2
+	//
+	//	3. Insert (first key of?) L2 into parent node P:
+	//		If there is space in node P, insert key-pointer pair to F
+	//		Else if there is no space:
+	//			 Create new interior node P2 (same level as P)
+	//			 
+	//			 First ceil (n+2)/2 pointers stay in P
+	//			 Last floor (n+2)/2 pointers move to P2
+	//
+	//			 First ceil (n/2) keys stay in P
+	//			 Last floor (n/2) keys move to P2
+	//			 K = leftover middle key indicating smallest key reachable via P2
+	//
+	//	4. Recursive step:
+	//		P = parent of P/P2
+	//		If P is root, special case..  
+	//		Else repeat step 3 where key to insert is K and parent is parent of P/P2
 }
 
 
@@ -524,7 +586,6 @@ ERROR_T BTreeIndex::SanityCheck() const
 
 ostream & BTreeIndex::Print(ostream &os) const
 {
-  // WRITE ME
 
   Display(os, BTREE_DEPTH_DOT);
   return os;
