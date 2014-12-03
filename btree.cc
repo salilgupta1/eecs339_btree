@@ -333,16 +333,6 @@ ERROR_T InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2){
 }
 
 
-ERROR_T InsertIntoUnfilledLeaf(){
-	// Given a key and pointer, along with not full leaf node, add it to the node and sort them
-}
-
-
-ERROR_T InsertIntoUnfilledInteriorOrRoot(){
-        // Given a key and pointer, along with not full interior node (or root?), add it to the node and sort them
-}
-
-
 ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
 
@@ -355,15 +345,21 @@ ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val
 	// 	4. Done
 
 	// Else if L is full, aka has n keys already
-	// 	1. Split L: Find a node L2 from the free list
+	// 	1. Split L: Find a node L2 from the free list 
 	//
-	//	2. Divide the keys: 
+	//	2. Divide the keys: <PASS L AND L2 INTO InsertAndSplitLeaf()>
 	//		First ceil (n+1)/2 key-pointer pairs remain in L
 	//		Last floor (n+1)/2 key-pointer pairs go into L2
 	//
-	//	3. Insert (first key of?) L2 into parent node P:
-	//		If there is space in node P, insert key-pointer pair to F
-	//		Else if there is no space:
+	//	3. Insert (first key of?) L2 into parent node P: <InsertRecur()>
+	//		If there is space in node P
+	//			Insert key-pointer pair to L2
+	//			Done
+	//		**NOTE**: IF ROOT HAS DIFFERENT STANDARDS FOR 'FULL', THIS NEEDS TO BE STRUCTURED DIFFERENTLY
+	//		Else if there is no space and this is root: <InsertAndSplitRoot()>
+	//			Do something special
+	//			Done
+	//		Else if there is no space and this is not root: 
 	//			 Create new interior node P2 (same level as P)
 	//			 
 	//			 First ceil (n+2)/2 pointers stay in P
@@ -373,10 +369,8 @@ ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val
 	//			 Last floor (n/2) keys move to P2
 	//			 K = leftover middle key indicating smallest key reachable via P2
 	//
-	//	4. Recursive step:
-	//		P = parent of P/P2
-	//		If P is root, special case..  
-	//		Else repeat step 3 where key to insert is K and parent is parent of P/P2
+	//			 Repeat this step where parent is parent of P and L2 is K <PASS parent AND K INTO InsertRecur()>
+	//
 }
 
 
