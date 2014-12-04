@@ -383,7 +383,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			if(rc){
 				return rc;
 			}
-			if (key <= tempKey)
+			if (key<tempKey || key==tempKey)
 			{
 				saveOffset = offset;
 				break;
