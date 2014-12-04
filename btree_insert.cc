@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  if ((rc=btree.Attach(0))!=ERROR_NOERROR) { 
+  if ((rc=btree.Attach(0,1))!=ERROR_NOERROR) { 
     cerr << "Can't attach to index  due to error "<<rc<<endl;
     return -1;
   } else {
