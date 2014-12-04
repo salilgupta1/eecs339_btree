@@ -254,7 +254,7 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
 }
 
 
-ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const
+ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const
 {
   BTreeNode b;
   ERROR_T rc;
@@ -312,7 +312,7 @@ ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val,
 //
 //
 //
-bool isFull(const SIZE_T &Node) const
+bool BTreeIndex::isFull(const SIZE_T &Node) const
 {
 	// Checks if a given node is full
 	BTreeNode b; 
@@ -355,7 +355,7 @@ ERROR_T InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2){
 }
 */
 
-ERROR_T InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
+ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
 
 	// Find leaf node L (capacity n) that new key would be inserted in
