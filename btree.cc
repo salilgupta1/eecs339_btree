@@ -339,7 +339,7 @@ bool isFull(const SIZE_T &Node) const
 	}
 }
 
-
+/*
 ERROR_T InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2){
 	// Distribute key-pointer pairs of L1, plus our new one, into L1 and L2
 }
@@ -353,9 +353,9 @@ ERROR_T InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
 ERROR_T InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2){
         // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
 }
+*/
 
-
-ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
+ERROR_T InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
 
 	// Find leaf node L (capacity n) that new key would be inserted in
