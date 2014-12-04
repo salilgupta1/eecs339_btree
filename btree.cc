@@ -368,24 +368,53 @@ ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val
 
 	// If L is not full
 	if(!isFull(L)){
+		
 		rc = b.Unserialize(buffercache, L);
-		list<KEY_T> l_Keys;
 
 		SIZE_T offset;
-		const KeyValuePair
-
+		SIZE_T saveOffset = b.info.numkeys;
+		KEY_T tempKey;
+		const KeyValuePair kv = KeyValuePair(key, val);
+		KeyValuePair swapKV;
+		VALUE_T tempVal;
+		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
-			rc = b.GetKey(offset, pushKey);
+			rc = b.GetKey(offset, tempKey);
 			if(rc){
 				return rc;
-			}else{
-
-				l_keys.push_back(pushKey);	
 			}
-
+			if (key <= tempKey)
+			{
+				saveOffset = offset;
+				break;
+			}
 		}
-
-		l_keys.push_back(key);
+		// now we move the key/val down one 
+		for(offset = b.info.numkeys; offset > saveOffset; offset--)
+		{
+			rc = b.GetKey(offset-1, tempKey);
+			if(rc)
+			{
+				return rc;
+			}
+			rc = b.GetVal(offset-1, tempVal);
+			if (rc)
+			{
+				return rc;	
+			}
+			swapKV = KeyValuePair(tempKey, tempVal);
+			rc = b.SetKeyVal(offset, swapKV);
+			if(rc)
+			{
+				return rc;
+			}
+		}
+		// insert our new key/val
+		rc = b.SetKeyVal(saveOffset, kv);
+		if(rc)
+		{
+			return rc;
+		}
 	}
 	// 	1. Empty keys into array size n
 	// 	2. Sort them
@@ -521,8 +550,7 @@ ERROR_T BTreeIndex::Lookup(const KEY_T &key, VALUE_T &value)
 
 ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
 {
-  list<SIZE_T> path;
-  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value, path);
+  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);
 }
   
 ERROR_T BTreeIndex::Update(const KEY_T &key, const VALUE_T &value)
