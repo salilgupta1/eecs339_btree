@@ -254,7 +254,7 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
 }
 
 
-ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const
+ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &value, list<SIZE_T> &Path) const
 {
   BTreeNode b;
   ERROR_T rc;
