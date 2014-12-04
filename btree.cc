@@ -403,7 +403,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		b.info.numkeys++;
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
-
 			cout << "In loop, offset is "<< offset <<endl;		
 			rc = b.GetKey(offset-1, tempKey);
 			if(rc)
@@ -416,10 +415,23 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				return rc;	
 			}
 			swapKV = KeyValuePair(tempKey, tempVal);
-			rc = b.SetKeyVal(offset, swapKV);
-			if(rc)
+				// If it's the beginning where root is a leaf, insert as leaf
+			if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+				b.info.nodetype = BTREE_LEAF_NODE;
+				rc = b.SetKeyVal(offset, swapKV);
+               			if(rc)
+               			{
+                        		return rc;
+                		}
+				b.info.nodetype = BTREE_ROOT_NODE;
+			}
+			else
 			{
-				return rc;
+				rc = b.SetKeyVal(offset, swapKV);
+				if(rc)
+				{
+					return rc;
+				}
 			}
 		}
 
