@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <set>
 
 #include "global.h"
 #include "block.h"
@@ -70,6 +71,8 @@ class BTreeIndex {
   ERROR_T      DisplayInternal(const SIZE_T &node,
 			       ostream &o, 
 			       const BTreeDisplayType display_type=BTREE_DEPTH) const;
+			   
+  ERROR_T 	SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) const;
 public:
   //
   // keysize and valueszie should be stored in the 
