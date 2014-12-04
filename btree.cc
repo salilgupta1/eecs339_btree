@@ -370,7 +370,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 	// If L is not full
 	if(!isFull(L)){
-		
+		cout << "Not full!" << endl;		
+
 		rc = b.Unserialize(buffercache, L);
 
 		SIZE_T offset;
@@ -379,6 +380,9 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		const KeyValuePair kv = KeyValuePair(key, val);
 		KeyValuePair swapKV;
 		VALUE_T tempVal;
+
+		
+
 		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
 			rc = b.GetKey(offset, tempKey);
@@ -391,10 +395,16 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				break;
 			}
 		}
+
+		cout << "Insert offset: " << saveOffset<<endl;
+		cout << "Num keys before insert: " << b.info.numkeys << endl;
+
 		// now we move the key/val down one 
 		b.info.numkeys++;
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
+
+			cout << "In loop, offset is "<< offset <<endl;		
 			rc = b.GetKey(offset-1, tempKey);
 			if(rc)
 			{
@@ -412,11 +422,27 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				return rc;
 			}
 		}
+
+		cout << "setting new keyval pair"<<endl;
 		// insert our new key/val
-		rc = b.SetKeyVal(saveOffset, kv);
-		if(rc)
-		{
-			return rc;
+		
+		// If it's the beginning where root is a leaf, insert as leaf
+		if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+			b.info.nodetype = BTREE_LEAF_NODE;
+			rc = b.SetKeyVal(saveOffset, kv);
+               		if(rc)
+               		{
+                        	return rc;
+                	}
+			b.info.nodetype = BTREE_ROOT_NODE;
+			
+		}else{
+
+			rc = b.SetKeyVal(saveOffset, kv);
+			if(rc)
+			{
+				return rc;
+			}
 		}
 		
 		return b.Serialize(buffercache, Node);
