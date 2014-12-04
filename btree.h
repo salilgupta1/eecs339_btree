@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <list>
 
 #include "global.h"
 #include "block.h"
