@@ -312,9 +312,31 @@ ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val,
 //
 //
 //
-bool isFull(SIZE_T &Node) const{
-	// Checks if a given node is full	
-	return true;
+bool isFull(SIZE_T &Node) const
+{
+	// Checks if a given node is full
+	BTreeNode b; 
+	b.unserialize(buffercache, Node);
+	switch(b.info.nodetype)
+	{
+		case BTREE_ROOT_NODE:
+		case BTREE_INTERIOR_NODE:
+		{
+			return (b.info.GetNumSlotsAsInterior() == b.info.numkeys);
+			break;
+		}
+		case BTREE_LEAF_NODE:
+		{
+			return (b.info.GetNumSlotsAsLeaf() == b.info.numkeys);
+			break;
+		}
+		default:
+		{
+			// no such nodetype
+			return false;
+			break;
+		}
+	}
 }
 
 
