@@ -254,7 +254,7 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
 }
 
 
-ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> Path) const
+ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const
 {
   BTreeNode b;
   ERROR_T rc;
@@ -337,8 +337,34 @@ ERROR_T  InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val
 {
 
 	// Find leaf node L (capacity n) that new key would be inserted in
-  
+	ERROR_T rc;
+	list<SIZE_T> Path;
+	rc = InsertFindNode(Node, key, val, Path);
+	
+	SIZE_T L = Path.back();
+	BTreeNode b;
+
 	// If L is not full
+	if(!isFull(L)){
+		rc = b.Unserialize(buffercache, L);
+		list<KEY_T> l_Keys;
+
+		SIZE_T offset;
+		const KeyValuePair
+
+		for(offset = 0; offset<b.info.numkeys; offset++){
+			rc = b.GetKey(offset, pushKey);
+			if(rc){
+				return rc;
+			}else{
+
+				l_keys.push_back(pushKey);	
+			}
+
+		}
+
+		l_keys.push_back(key);
+	}
 	// 	1. Empty keys into array size n
 	// 	2. Sort them
 	// 	3. Put them back into L
