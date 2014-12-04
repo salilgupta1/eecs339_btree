@@ -238,7 +238,9 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
 	if (op==BTREE_OP_LOOKUP) { 
 	  return b.GetVal(offset,value);
 	} else { 
-	  return b.SetVal(offset,value);
+	  rc= b.SetVal(offset,value);
+	  if(rc){return rc;}
+	  return b.Serialize(buffercache,node);
 	}     
       }
     }
@@ -390,7 +392,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 		// now we move the key/val down one 
-		for(offset = b.info.numkeys; offset > saveOffset; offset--)
+		b.info.numkeys++;
+		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
 			rc = b.GetKey(offset-1, tempKey);
 			if(rc)
@@ -415,6 +418,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		{
 			return rc;
 		}
+		
+		return b.Serialize(buffercache, Node);
 	}
 	// 	1. Empty keys into array size n
 	// 	2. Sort them
