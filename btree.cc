@@ -316,7 +316,7 @@ bool isFull(const SIZE_T &Node) const
 {
 	// Checks if a given node is full
 	BTreeNode b; 
-	b.unserialize(buffercache, Node);
+	b.Unserialize(buffercache, Node);
 	switch(b.info.nodetype)
 	{
 		case BTREE_ROOT_NODE:
