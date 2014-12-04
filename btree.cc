@@ -312,7 +312,7 @@ ERROR_T	InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val,
 //
 //
 //
-bool isFull(SIZE_T &Node) const
+bool isFull(const SIZE_T &Node) const
 {
 	// Checks if a given node is full
 	BTreeNode b; 
