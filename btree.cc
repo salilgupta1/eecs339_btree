@@ -688,7 +688,7 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 	}
 	
 	// root node, interior node and leaf node
-	switch(b.info.node_type)
+	switch(b.info.nodetype)
 	{
 		case BTREE_INTERIOR_NODE:
 		{
@@ -797,7 +797,7 @@ ERROR_T BTreeIndex::SanityCheckHelper(set<SIZE_T> &checkedNodes, SIZE_T &node) c
 			break;
 		}			
 	}
-	return ERROR_NOERROR:
+	return ERROR_NOERROR;
 	
 }
 
