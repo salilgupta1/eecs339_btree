@@ -53,7 +53,7 @@ class BTreeIndex {
 
   ERROR_T      DeallocateNode(const SIZE_T &node);
   
-  ERROR_T      isFull(const SIZE_T &Node) const;
+  bool 	       isFull(const SIZE_T &Node) const;
   
   ERROR_T      InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const;
 
