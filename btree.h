@@ -61,7 +61,7 @@ class BTreeIndex {
   
   ERROR_T      InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, const VALUE_T &v);
   
-  ERROR_T      InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2, const KEY_T &k, const SIZE_T &ptr, const KEY_T &newK, const SIZE_T &ptr);
+  ERROR_T      InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2, const KEY_T &k, const SIZE_T &ptr, const KEY_T &newK, const SIZE_T &newPtr);
   
   ERROR_T      InsertRecur(list<SIZE_T> &path, const KEY_T &k, const SIZE_T &ptr);
   
