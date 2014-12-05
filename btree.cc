@@ -268,12 +268,17 @@ ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const V
   rc= b.Unserialize(buffercache,Node);
   Path.push_back(Node);
 
+  cout << "**Pushed onto path: "<<Node<<endl;
   if (rc!=ERROR_NOERROR) { 
     return rc;
   }
 
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
+	if(superblock.info.freelist == 2){
+		return ERROR_NOERROR;
+	}
+
   case BTREE_INTERIOR_NODE:
     // Scan through key/ptr pairs
     //and recurse if possible
@@ -777,6 +782,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			b.info.nodetype = BTREE_LEAF_NODE;
 			rc = b.SetKeyVal(saveOffset, kv);
 			b.info.nodetype = BTREE_ROOT_NODE;
+			cout << "**Inserted into rootleaf"<<endl;
 		}else{
 			rc = b.SetKeyVal(saveOffset, kv);
 		}
@@ -785,6 +791,9 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		// write the data back to the disk
 		return b.Serialize(buffercache, Node);
 	}else{
+
+		cout << "**The leaf is full" << endl;
+		cout << "**Node type is "<<b.info.nodetype;
 		// the leaf is full
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
