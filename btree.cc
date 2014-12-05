@@ -789,7 +789,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		if(rc){return rc;}
 		
 		// write the data back to the disk
-		return b.Serialize(buffercache, Node);
+		return b.Serialize(buffercache, L);
 	}else{
 
 		cout << "**The leaf is full" << endl;
@@ -802,6 +802,48 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		{
 			case BTREE_ROOT_NODE:
 			{
+
+				if(isRootLeaf(b)){
+					
+					SIZE_T NewRoot;
+					SIZE_T NewLeaf;
+
+					rc = AllocateNode(NewRoot);
+					rc = AllocateNode(NewLeaf);
+					if(rc){return rc;}
+
+					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
+					if(rc){return rc;}
+
+
+					KEY_T k;
+				        rc = b.GetKey(b.info.numkeys-1,k);
+                               	        if(rc){return rc;}
+				
+
+					BTreeNode bNewRoot;
+					rc = bNewRoot.Unserialize(buffercache, NewRoot);
+					if(rc){return rc;}
+
+					bNewRoot.SetKey(0,k);
+					bNewRoot.SetPtr(0, &L);
+					bNewRoot.SetPtr(1, &NewLeaf);
+					bNewRoot.info.numkeys++;
+
+
+                                        BTreeNode b2;
+                                        rc = b2.Unserialize(buffercache, NewLeaf);
+
+					b.info.nodetype = BTREE_LEAF_NODE;
+					b2.info.nodetype = BTREE_LEAF_NODE;
+					bNewRoot.info.nodetype = BTREE_ROOT_NODE;
+
+					rc = b.Serialize(buffercache, L);
+					rc = b2.Serialize(buffercache, NewLeaf);
+					rc = bNewRoot.Serialize(buffercache, NewRoot);
+					superblock.info.rootnode = superblock.info.freelist-1;
+				
+				}
 				// if the node we are looking at is a root node
 				// we need to split the root node
 				//InsertAndSplitRoot();
@@ -819,17 +861,23 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				// go up the tree to its interior nodes and reshuffle things around
 				KEY_T k;
 				SIZE_T ptr;
-				BTreeNode b;
-				rc = b.Unserialize(buffercache, L2);
-				rc = b.GetKey(0,k);
-				rc = b.GetPtr(0,ptr);
+				BTreeNode b2;
+				rc = b2.Unserialize(buffercache, L2);
+				rc = b2.GetKey(0,k);
+				rc = b2.GetPtr(0,ptr);
 				if(rc){return rc;}
 				rc = InsertRecur(Path,k,ptr);
 				break;	
 			}
 		}
 	}
-	return ERROR_NOERROR;
+
+
+
+	rc = superblock.Serialize(buffercache, superblock_index);
+
+	return rc || ERROR_NOERROR;
+
 	// Else if L is full, aka has n keys already
 	// 	1. Split L: Find a node L2 from the free list 
 	//
