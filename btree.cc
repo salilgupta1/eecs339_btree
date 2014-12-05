@@ -457,14 +457,14 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 			{
 				return rc;
 			}
-			rc = parent.GetPtr(offset-1, tempPtr);
+			rc = parent.GetPtr(offset, tempPtr);
 			if(rc){return rc;}
 			rc = parent.SetKey(offset,tempKey);
-			rc = parent.SetPtr(offset,tempPtr);
+			rc = parent.SetPtr(offset + 1,tempPtr);
 			if(rc){return rc;}
 		}
 		rc = parent.SetKey(saveOffset, k);
-		rc = parent.SetPtr(saveOffset, ptr);
+		rc = parent.SetPtr(saveOffset + 1, ptr);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is the root node 
