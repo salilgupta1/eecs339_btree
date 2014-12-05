@@ -826,8 +826,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					if(rc){return rc;}
 
 					bNewRoot.SetKey(0,k);
-					bNewRoot.SetPtr(0, &L);
-					bNewRoot.SetPtr(1, &NewLeaf);
+					bNewRoot.SetPtr(0, L);
+					bNewRoot.SetPtr(1, NewLeaf);
 					bNewRoot.info.numkeys++;
 
 
