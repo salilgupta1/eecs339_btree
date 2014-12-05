@@ -336,10 +336,11 @@ bool BTreeIndex::isFull(const SIZE_T &Node) const
 		default:
 		{
 			// no such nodetype
-			return false;
+			return true;
 			break;
 		}
 	}
+	return false;
 }
 
 
@@ -485,6 +486,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		InsertRecur(path,newK, newPtr);
 		if(rc){return rc;}
 	}
+	return ERROR_NORERROR;
 }
 /*
 ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
@@ -818,6 +820,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 	}
+	return ERROR_NOERROR;
 	// Else if L is full, aka has n keys already
 	// 	1. Split L: Find a node L2 from the free list 
 	//
