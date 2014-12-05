@@ -35,11 +35,11 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  if ((rc=btree.Attach(0,true))!=ERROR_NOERROR) { 
+  if ((rc=btree.Attach(0))!=ERROR_NOERROR) { 
     cerr << "Can't attach to index  due to error "<<rc<<endl;
     return -1;
   } else {
-    cerr << "Index attached!"<<endl;
+    cerr << "\nIndex attached!\n"<<endl;
     if ((rc=btree.Insert(KEY_T(key),VALUE_T(value)))!=ERROR_NOERROR) { 
       cerr <<"Can't insert into index due to error "<<rc<<endl;
     } else {

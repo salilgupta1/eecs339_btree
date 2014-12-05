@@ -179,7 +179,7 @@ char * BTreeNode::ResolvePtr(const SIZE_T offset) const
 
 char * BTreeNode::ResolveVal(const SIZE_T offset) const
 {
-  cout << "node type: "<<info.nodetype<<endl;
+  cout << "**Node type: "<<info.nodetype<<"\n"<<endl;
   switch (info.nodetype) { 
   case BTREE_LEAF_NODE:
     assert(offset<info.numkeys);
@@ -279,7 +279,6 @@ ERROR_T BTreeNode::SetPtr(const SIZE_T offset, const SIZE_T &ptr)
 
 ERROR_T BTreeNode::SetVal(const SIZE_T offset, const VALUE_T &v)
 {
-  cout << offset << endl;
   char *p=ResolveVal(offset);
   
   if (p==0) { 
@@ -294,13 +293,11 @@ ERROR_T BTreeNode::SetVal(const SIZE_T offset, const VALUE_T &v)
 
 ERROR_T BTreeNode::SetKeyVal(const SIZE_T offset, const KeyValuePair &p)
 {
-  cout << "setting key" << endl;
   ERROR_T rc=SetKey(offset,p.key);
 
   if (rc!=ERROR_NOERROR) { 
     return rc;
   } else {
-    cout << "setting val" <<endl;
     return SetVal(offset,p.value);
   }
 }

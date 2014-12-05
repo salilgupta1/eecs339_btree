@@ -267,12 +267,20 @@ ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const V
   rc= b.Unserialize(buffercache,Node);
   Path.push_back(Node);
 
+  //cout <<"**Path "<< Node << endl;
+
   if (rc!=ERROR_NOERROR) { 
     return rc;
   }
 
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
+	if(superblock.info.freelist == 2){
+		cout << "**IT'S A ROOTLEAF!" <<endl;
+	}
+	return ERROR_NOERROR;
+
+
   case BTREE_INTERIOR_NODE:
     // Scan through key/ptr pairs
     //and recurse if possible
@@ -368,9 +376,11 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	SIZE_T L = Path.back();
 	BTreeNode b;
 
+//	cout << "**Found node: "<< L << endl;;
+
 	// If L is not full
 	if(!isFull(L)){
-		cout << "Not full!" << endl;		
+		cout << "**Node not full" << endl;		
 
 		rc = b.Unserialize(buffercache, L);
 
@@ -381,7 +391,9 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		KeyValuePair swapKV;
 		VALUE_T tempVal;
 
+		cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
 		
+
 
 		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
@@ -396,26 +408,46 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 
-		cout << "Insert offset: " << saveOffset<<endl;
-		cout << "Num keys before insert: " << b.info.numkeys << endl;
+		cout << "**Inserting at position: " << saveOffset << endl;
 
 		// now we move the key/val down one 
 		b.info.numkeys++;
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
-			cout << "In loop, offset is "<< offset <<endl;		
+			cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
+
 			rc = b.GetKey(offset-1, tempKey);
 			if(rc)
 			{
 				return rc;
 			}
-			rc = b.GetVal(offset-1, tempVal);
-			if (rc)
-			{
-				return rc;	
+			cout << "**Retrieved key to be shifted"<<endl;
+			
+	
+                        if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+                                b.info.nodetype = BTREE_LEAF_NODE;
+                                rc = b.GetVal(offset-1, tempVal);
+                                if(rc)
+                                {
+                                        return rc;
+                                }
+                                b.info.nodetype = BTREE_ROOT_NODE;
+                        }else{
+
+	                        rc = b.GetVal(offset-1, tempVal);
+        	                if (rc)
+                	        {
+                        	        return rc;
+                       		}
+
 			}
+
+			cout << "**Retrieved val to be shifted"<<endl;
+			
 			swapKV = KeyValuePair(tempKey, tempVal);
-				// If it's the beginning where root is a leaf, insert as leaf
+			cout << "**Made KV pair"<<endl;
+
+			// If it's the beginning where root is a leaf, insert as leaf
 			if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
 				b.info.nodetype = BTREE_LEAF_NODE;
 				rc = b.SetKeyVal(offset, swapKV);
@@ -427,6 +459,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 			else
 			{
+				cout << "**It's not a rootleaf"<<endl;
 				rc = b.SetKeyVal(offset, swapKV);
 				if(rc)
 				{
@@ -435,7 +468,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 
-		cout << "setting new keyval pair"<<endl;
+		//cout << "**Setting new keyval pair ("<< key << ","<<val<<")"<< endl;
 		// insert our new key/val
 		
 		// If it's the beginning where root is a leaf, insert as leaf
@@ -449,7 +482,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			b.info.nodetype = BTREE_ROOT_NODE;
 			
 		}else{
-
+			cout << "**It's not a rootleaf"<<endl;
 			rc = b.SetKeyVal(saveOffset, kv);
 			if(rc)
 			{
@@ -459,10 +492,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		
 		return b.Serialize(buffercache, Node);
 	}
-	// 	1. Empty keys into array size n
-	// 	2. Sort them
-	// 	3. Put them back into L
-	// 	4. Done
 
 	// Else if L is full, aka has n keys already
 	// 	1. Split L: Find a node L2 from the free list 
