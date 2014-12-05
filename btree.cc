@@ -709,9 +709,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 	// If L is not full
 	if(!isFull(L)){
-		cout << "Not full!" << endl;		
-		
-		// get data from node
+		cout << "**Node not full" << endl;		
+
 		rc = b.Unserialize(buffercache, L);
 
 		SIZE_T offset;
@@ -721,7 +720,9 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		KeyValuePair swapKV;
 		VALUE_T tempVal;
 
-		// search for the location to put the key into the node
+		cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
+		
+		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
 			rc = b.GetKey(offset, tempKey);
 			if(rc){
@@ -734,74 +735,55 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 
-		cout << "Insert offset: " << saveOffset<<endl;
-		cout << "Num keys before insert: " << b.info.numkeys << endl;
+		cout << "**Inserting at position: " << saveOffset << endl;
 
 		// increment the number of keys in the node
 		b.info.numkeys++;
-		// go through the keys and move accordingly to allocate space for the new key
+		
+		// go through the keys and shift accordingly to allocate space for the new key
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
-			cout << "In loop, offset is "<< offset <<endl;		
+			cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
+
 			rc = b.GetKey(offset-1, tempKey);
-			if(rc)
-			{
-				return rc;
+			if(rc){return rc;}
+
+			// if it's the root acting as a leaf, we change its type temporarily so GetVal doesn't freak out
+                        if(isRootLeaf(b)){
+                                b.info.nodetype = BTREE_LEAF_NODE;
+                                
+                                rc = b.GetVal(offset-1, tempVal);
+                                if(rc){return rc;}
+                                
+                                swapKV = KeyValuePair(tempKey, tempVal);
+                                rc = b.SetKeyVal(offset, swapKV);
+                                
+                                b.info.nodetype = BTREE_ROOT_NODE;
+                        }else{
+	                        rc = b.GetVal(offset-1, tempVal);
+	                        if(rc){return rc;}
+	                        
+	                        swapKV = KeyValuePair(tempKey, tempVal);
+	                        rc = b.SetKeyVal(offset, swapKV);
 			}
-			rc = b.GetVal(offset-1, tempVal);
-			if (rc)
-			{
-				return rc;	
-			}
-			swapKV = KeyValuePair(tempKey, tempVal);
-			
-			// If it's the beginning where root is a leaf, insert as leaf
-			if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
-				b.info.nodetype = BTREE_LEAF_NODE;
-				rc = b.SetKeyVal(offset, swapKV);
-               			if(rc)
-               			{
-                        		return rc;
-                		}
-				b.info.nodetype = BTREE_ROOT_NODE;
-			}
-			else
-			{
-				rc = b.SetKeyVal(offset, swapKV);
-				if(rc)
-				{
-					return rc;
-				}
-			}
+			if(rc){return rc;}
 		}
 
-		cout << "setting new keyval pair"<<endl;
-		// insert our new key/val
-		
-		// If it's the beginning where root is a leaf, insert as leaf
-		if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+		// Now that we've made room, nsert our new key/val
+		// if it's the root acting as a leaf, we change its type temporarily so SetKeyVal allows it
+		if(isRootLeaf(b)){
 			b.info.nodetype = BTREE_LEAF_NODE;
 			rc = b.SetKeyVal(saveOffset, kv);
-               		if(rc)
-               		{
-                        	return rc;
-                	}
 			b.info.nodetype = BTREE_ROOT_NODE;
-			
 		}else{
-
 			rc = b.SetKeyVal(saveOffset, kv);
-			if(rc)
-			{
-				return rc;
-			}
 		}
+		if(rc){return rc;}
+		
 		// write the data back to the disk
 		return b.Serialize(buffercache, Node);
-	}
-
-	// if the node is full
-	else{
+	}else{
+		// the leaf is full
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
