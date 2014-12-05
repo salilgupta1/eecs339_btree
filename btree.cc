@@ -370,7 +370,6 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	rc = newLeaf.Unserialize(buffercache, L2);
 	// set the new leaf's num of keys
 	newLeaf.info.numkeys = secondHalfOfKeys;
-	newLeaf.info.nodetype = BTREE_LEAF_NODE;
 	
 	if(rc){return rc;}
 	
@@ -471,6 +470,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		}
 		rc = parent.SetKey(saveOffset, k);
 		rc = parent.SetPtr(saveOffset + 1, ptr);
+		rc = parent.Serialize(buffercache,p);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is the root node 
@@ -498,9 +498,8 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		if (rc){return rc;}
 		// we need to take the parent and newNode and distribute the keys across the two
 		KEY_T newK;
-		SIZE_T newPtr;
-		rc = InsertAndSplitInterior(p,newNode, k, ptr, newK, newPtr);
-		InsertRecur(path,newK, newPtr);
+		rc = InsertAndSplitInterior(p, newNode, k, ptr, newK);
+		rc = InsertRecur(path, newK, newNode);
 		if(rc){return rc;}
 	}
 	return ERROR_NOERROR;
@@ -547,7 +546,7 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 					   const KEY_T &k,
 					   const SIZE_T &ptr,
 					   KEY_T &newK,
-					   SIZE_T &newPtr)
+					   )
 {
         // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
 
@@ -559,8 +558,6 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
        	if(rc){return rc;}
        	rc = newInterior.Unserialize(buffercache, I2);
        	if(rc){return rc;}
-       	
-       	newInterior.info.nodetype = BTREE_INTERIOR_NODE;
        	
        	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
@@ -574,8 +571,6 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 	firstHalfOfptrs = ceil((original.info.numkeys + 2) / 2);
 	secondHalfOfptrs = floor((original.info.numkeys + 2) / 2);
 	
-	// read the newInterior from disk
-	rc = newInterior.Unserialize(buffercache, I2);
 	// set the new leaf's num of keys
 	newInterior.info.numkeys = secondHalfOfKeys;
 	
@@ -625,11 +620,10 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 	{
 		rc = FindAndInsertKeyPtr(I2,k,ptr);
 	}
-	// send the last key, ptr of I1 to InsertRecur
+	// send the last key of I1 to InsertRecur
 	BTreeNode b;
 	rc = b.Unserialize(buffercache, I1);
 	rc = b.GetKey(b.info.numkeys-1, newK);
-	rc = b.GetPtr(b.info.numkeys,newPtr);
 	b.info.numkeys--;
 	rc = b.Serialize(buffercache, I1);
 	return rc;
@@ -889,9 +883,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					superblock.info.rootnode = NewRoot;
 				
 				}
-				// if the node we are looking at is a root node
-				// we need to split the root node
-				//InsertAndSplitRoot();
 				break;
 			}
 			default:
@@ -908,6 +899,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				SIZE_T ptr;
 				BTreeNode b2;
 				rc = b2.Unserialize(buffercache, L2);
+				b2.info.nodetype = BTREE_LEAF_NODE;
 				rc = b2.GetKey(0,k);
 				rc = b2.GetPtr(0,ptr);
 				if(rc){return rc;}
