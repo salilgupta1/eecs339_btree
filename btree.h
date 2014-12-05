@@ -71,7 +71,6 @@ class BTreeIndex {
   
   ERROR_T      FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SIZE_T &ptr);
   
->>>>>>> 8049304b85c4956a1a3dd00ea183c62cd77a0c6d
   ERROR_T      LookupOrUpdateInternal(const SIZE_T &Node,
 				      const BTreeOp op, 
 				      const KEY_T &key,
