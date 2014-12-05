@@ -370,6 +370,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	rc = newLeaf.Unserialize(buffercache, L2);
 	// set the new leaf's num of keys
 	newLeaf.info.numkeys = secondHalfOfKeys;
+	newLeaf.info.nodetype = BTREE_LEAF_NODE;
 	
 	if(rc){return rc;}
 	
@@ -516,6 +517,8 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
        	if(rc){return rc;}
        	rc = newInterior.Unserialize(buffercache, I2);
        	if(rc){return rc;}
+       	
+       	newInterior.info.nodetype = BTREE_INTERIOR_NODE;
        	
        	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
@@ -841,7 +844,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					rc = b.Serialize(buffercache, L);
 					rc = b2.Serialize(buffercache, NewLeaf);
 					rc = bNewRoot.Serialize(buffercache, NewRoot);
-					superblock.info.rootnode = superblock.info.freelist-1;
+					superblock.info.rootnode = NewRoot;
 				
 				}
 				// if the node we are looking at is a root node
