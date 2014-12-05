@@ -476,7 +476,18 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	// if the parent is full and it is the root node 
 	else if(parent.info.nodetype == BTREE_ROOT_NODE)
 	{
-		// we dont know 
+		SIZE_T NewNode;
+		//we need to create a new interior node
+		rc = AllocateNode(newNode);
+		
+		SIZE_T NewRoot;
+		//we need to create a new root node
+		rc = AllocateNode(newRoot);
+		if (rc){return rc;}
+		
+		// we need to take the parent and newNode and distribute the keys across the two
+		rc = InsertAndSplitRoot(p, NewNode, NewRoot, k, ptr)
+		if(rc){return rc;}
 	}
 	// if the parent is full and it is an interior node
 	else
@@ -494,11 +505,42 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	}
 	return ERROR_NOERROR;
 }
-/*
-ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
-        return ERROR_UNIM
+
+ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &p, SIZE_T &NewInterior, SIZE_T &NewRoot, const KEY_T &k, const SIZE_T &ptr){
+	
+	KEY_T key;
+	SIZE_T newPtr;
+	//Insert key and val into current root, return pushed up key and pointer to new internal node
+	rc = InsertAndSplitInterior(p,NewInterior,k,ptr,key);
+	if(rc){return rc;}
+
+
+	BTreeNode bNewRoot;
+	rc = bNewRoot.Unserialize(buffercache, NewRoot);
+	if(rc){return rc;}
+
+	bNewRoot.SetKey(0,key);
+	bNewRoot.SetPtr(0, p);
+	bNewRoot.SetPtr(1, NewInterior);
+	bNewRoot.info.numkeys++;
+
+	BTreeNode b;
+	rc = b.Unserialize(buffercache, p);
+        BTreeNode b2;
+        rc = b2.Unserialize(buffercache, NewInterior);
+
+	b.info.nodetype = BTREE_INTERIOR_NODE;
+	b2.info.nodetype = BTREE_INTERIOR_NODE;
+	bNewRoot.info.nodetype = BTREE_ROOT_NODE;
+
+	rc = b.Serialize(buffercache, L);
+	rc = b2.Serialize(buffercache, NewInterior);
+	rc = bNewRoot.Serialize(buffercache, NewRoot);
+	superblock.info.rootnode = NewRoot;
+	
+        return rc;
 }
-*/
+
 
 ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 					   SIZE_T &I2,
