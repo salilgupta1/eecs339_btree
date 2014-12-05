@@ -833,11 +833,12 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	}else{
 		// the node we want to insert into is full 
 		cout << "**The leaf is full" << endl;
-		cout << "**Node type is "<<b.info.nodetype;
+		
 		
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
+		cout << "**Node type is "<<b.info.nodetype;
 		switch(b.info.nodetype)
 		{
 			// if its the edge case that the leaf node is really a root
