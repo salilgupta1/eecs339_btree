@@ -606,8 +606,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 		cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
 		
-
-
 		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
 			rc = b.GetKey(offset, tempKey);
@@ -625,90 +623,51 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 		// increment the number of keys in the node
 		b.info.numkeys++;
-		// go through the keys and move accordingly to allocate space for the new key
+		
+		// go through the keys and shift accordingly to allocate space for the new key
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
 			cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
 
 			rc = b.GetKey(offset-1, tempKey);
-			if(rc)
-			{
-				return rc;
-			}
-			cout << "**Retrieved key to be shifted"<<endl;
-			
-	
-                        if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+			if(rc){return rc;}
+
+			// if it's the root acting as a leaf, we change its type temporarily so GetVal doesn't freak out
+                        if(isRootLeaf(b)){
                                 b.info.nodetype = BTREE_LEAF_NODE;
+                                
                                 rc = b.GetVal(offset-1, tempVal);
-                                if(rc)
-                                {
-                                        return rc;
-                                }
+                                if(rc){return rc;}
+                                
+                                swapKV = KeyValuePair(tempKey, tempVal);
+                                rc = b.SetKeyVal(offset, swapKV);
+                                
                                 b.info.nodetype = BTREE_ROOT_NODE;
                         }else{
-
 	                        rc = b.GetVal(offset-1, tempVal);
-        	                if (rc)
-                	        {
-                        	        return rc;
-                       		}
-
+	                        if(rc){return rc;}
+	                        
+	                        swapKV = KeyValuePair(tempKey, tempVal);
+	                        rc = b.SetKeyVal(offset, swapKV);
 			}
-
-			cout << "**Retrieved val to be shifted"<<endl;
-			
-			swapKV = KeyValuePair(tempKey, tempVal);
-			cout << "**Made KV pair"<<endl;
-
-			// If it's the beginning where root is a leaf, insert as leaf
-			if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
-				b.info.nodetype = BTREE_LEAF_NODE;
-				rc = b.SetKeyVal(offset, swapKV);
-               			if(rc)
-               			{
-                        		return rc;
-                		}
-				b.info.nodetype = BTREE_ROOT_NODE;
-			}
-			else
-			{
-				cout << "**It's not a rootleaf"<<endl;
-				rc = b.SetKeyVal(offset, swapKV);
-				if(rc)
-				{
-					return rc;
-				}
-			}
+			if(rc){return rc;}
 		}
 
-		//cout << "**Setting new keyval pair ("<< key << ","<<val<<")"<< endl;
-		// insert our new key/val
-		
-		// If it's the beginning where root is a leaf, insert as leaf
-		if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+		// Now that we've made room, nsert our new key/val
+		// if it's the root acting as a leaf, we change its type temporarily so SetKeyVal allows it
+		if(isRootLeaf(b)){
 			b.info.nodetype = BTREE_LEAF_NODE;
 			rc = b.SetKeyVal(saveOffset, kv);
-               		if(rc)
-               		{
-                        	return rc;
-                	}
 			b.info.nodetype = BTREE_ROOT_NODE;
-			
 		}else{
-			cout << "**It's not a rootleaf"<<endl;
 			rc = b.SetKeyVal(saveOffset, kv);
-			if(rc)
-			{
-				return rc;
-			}
 		}
+		if(rc){return rc;}
+		
 		// write the data back to the disk
 		return b.Serialize(buffercache, Node);
-	}
-
-	// if the node is full
-	else{
+	}else{
+		// if the node is full
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc};
@@ -735,6 +694,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 	}
+	
+	
 	// Else if L is full, aka has n keys already
 	// 	1. Split L: Find a node L2 from the free list 
 	//
@@ -764,6 +725,10 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	//
 }
 
+
+bool isRootLeaf(BTreeIndex b){
+	return b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2;
+}
 
 static ERROR_T PrintNode(ostream &os, SIZE_T nodenum, BTreeNode &b, BTreeDisplayType dt)
 {
