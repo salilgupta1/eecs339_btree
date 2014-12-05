@@ -834,17 +834,16 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		// the node we want to insert into is full 
 		cout << "**The leaf is full" << endl;
 		
-		
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
-		cout << "**Node type is "<<b.info.nodetype;
 		switch(b.info.nodetype)
 		{
+			cout << "**Node type is " << b.info.nodetype << endl;
 			// if its the edge case that the leaf node is really a root
 			case BTREE_ROOT_NODE:
 			{
-
+				
 				if(isRootLeaf(b)){
 					
 					SIZE_T NewRoot;
@@ -863,6 +862,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
                                         b2.info.nodetype = BTREE_LEAF_NODE;
 					b2.Serialize(buffercache, NewLeaf);
 					
+					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
