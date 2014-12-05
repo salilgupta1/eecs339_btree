@@ -506,9 +506,8 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 }
 
 ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &p, SIZE_T &NewInterior, SIZE_T &NewRoot, const KEY_T &k, const SIZE_T &ptr){
-	
+	ERROR_T rc;
 	KEY_T key;
-	SIZE_T newPtr;
 	//Insert key and val into current root, return pushed up key and pointer to new internal node
 	rc = InsertAndSplitInterior(p,NewInterior,k,ptr,key);
 	if(rc){return rc;}
@@ -532,7 +531,7 @@ ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &p, SIZE_T &NewInterior, SIZE_T &N
 	b2.info.nodetype = BTREE_INTERIOR_NODE;
 	bNewRoot.info.nodetype = BTREE_ROOT_NODE;
 
-	rc = b.Serialize(buffercache, L);
+	rc = b.Serialize(buffercache, p);
 	rc = b2.Serialize(buffercache, NewInterior);
 	rc = bNewRoot.Serialize(buffercache, NewRoot);
 	superblock.info.rootnode = NewRoot;
@@ -545,8 +544,7 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 					   SIZE_T &I2,
 					   const KEY_T &k,
 					   const SIZE_T &ptr,
-					   KEY_T &newK,
-					   )
+					   KEY_T &newK)
 {
         // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
 
