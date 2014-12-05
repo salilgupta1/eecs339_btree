@@ -512,6 +512,8 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
        	
        	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
+	SIZE_T firstHalfOfptrs;
+	SIZE_T secondHalfOfptrs;
 	
 	// find the index to split on
 	firstHalfOfKeys = ceil((original.info.numkeys) / 2);
@@ -521,7 +523,7 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 	secondHalfOfptrs = floor((original.info.numkeys + 2) / 2);
 	
 	// read the newInterior from disk
-	rc = newInterior.Unserialize(buffercache, L2);
+	rc = newInterior.Unserialize(buffercache, I2);
 	// set the new leaf's num of keys
 	newInterior.info.numkeys = secondHalfOfKeys;
 	
