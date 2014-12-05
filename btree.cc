@@ -850,7 +850,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			{
 
 				cout << "**In root case"<<endl;
-
+		
 				if(isRootLeaf(b)){
 
 					cout << "**Is root leaf"<<endl;
@@ -871,6 +871,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
                                         b2.info.nodetype = BTREE_LEAF_NODE;
 					b2.Serialize(buffercache, NewLeaf);
 					
+					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
