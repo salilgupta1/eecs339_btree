@@ -496,8 +496,8 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 					   SIZE_T &I2,
 					   const KEY_T &k,
 					   const SIZE_T &ptr,
-					   const KEY_T &newK,
-					   const SIZE_T &newPtr)
+					   KEY_T &newK,
+					   SIZE_T &newPtr)
 {
         // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
 
