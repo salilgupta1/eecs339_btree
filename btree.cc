@@ -351,7 +351,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	ERROR_T rc;
 	
 	rc = original.Unserialize(buffercache,L1);
-	if (rc){return rc};
+	if (rc){return rc;}
 	
 	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
@@ -390,7 +390,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	
 	// now find where to put the new key and value
 	rc = original.GetKey(firstHalfOfKeys - 1,tempKey);
-	if(rc){return rc};
+	if(rc){return rc;}
 	
 	// write the nodes back to disk
 	rc = original.Serialize(buffercache, L1);
@@ -424,11 +424,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	// read it from disk
 	rc = parent.Unserialize(buffercache, p);
 	if(rc){return rc;}
-	
-	// read child from disk
-	BTreeNode b;
-	rc = b.Unserialize(buffercache, L2);
-	if(rc){return rc;}
+
 	
 	if(!isFull(p))
 	{
@@ -467,7 +463,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 			if(rc){return rc;}
 		}
 		rc = parent.SetKey(saveOffset, k);
-		rc = parent.SetPtr(saveoffset, ptr);
+		rc = parent.SetPtr(saveOffset, ptr);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is the root node 
@@ -486,15 +482,15 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		KEY_T newK;
 		SIZE_T newPtr;
 		rc = InsertAndSplitInterior(p,newNode, k, ptr, newK, newPtr);
-		InsertRecur(path,newK, newPtr)
+		InsertRecur(path,newK, newPtr);
 		if(rc){return rc;}
 	}
 }
-
+/*
 ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
-        
+        return ERROR_UNIM
 }
-
+*/
 
 ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 					   SIZE_T &I2,
