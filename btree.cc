@@ -478,15 +478,15 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	{
 		SIZE_T NewNode;
 		//we need to create a new interior node
-		rc = AllocateNode(newNode);
+		rc = AllocateNode(NewNode);
 		
 		SIZE_T NewRoot;
 		//we need to create a new root node
-		rc = AllocateNode(newRoot);
+		rc = AllocateNode(NewRoot);
 		if (rc){return rc;}
 		
 		// we need to take the parent and newNode and distribute the keys across the two
-		rc = InsertAndSplitRoot(p, NewNode, NewRoot, k, ptr)
+		rc = InsertAndSplitRoot(p, NewNode, NewRoot, k, ptr);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is an interior node
