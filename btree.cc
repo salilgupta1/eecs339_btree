@@ -633,7 +633,7 @@ ERROR_T BTreeIndex::FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VA
 	}
 	// put the new key in
 	swapKV = KeyValuePair(key,val);
-	rc = b.SetKeyVal(saveOffset, swapKV)
+	rc = b.SetKeyVal(saveOffset, swapKV);
 	b.info.numkeys++;
 	rc = b.Serialize(buffercache, Node);
 	if(rc){ return rc;}
@@ -802,22 +802,22 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	else{
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
-		if (rc){return rc};
+		if (rc){return rc;}
 		switch(b.info.nodetype)
 		{
 			case BTREE_ROOT_NODE:
 			{
 				// if the node we are looking at is a root node
 				// we need to split the root node
-				InsertAndSplitRoot();
+				//InsertAndSplitRoot();
 				break;
 			}
-			default
+			default:
 			{
 				// otherwise we must be looking at a leaf node
 				SIZE_T L2;
 				// allocate space for a new leaf node
-				rc = AllocateNode(L2)
+				rc = AllocateNode(L2);
 				if(rc){return rc;}
 				// split the leaf and put half of keys into new leaf node
 				rc = InsertAndSplitLeaf(L,L2,key,val);
@@ -827,7 +827,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				BTreeNode b;
 				rc = b.Unserialize(buffercache, L2);
 				rc = b.GetKey(0,k);
-				rc = b.GetPtr(0,ptr)
+				rc = b.GetPtr(0,ptr);
 				if(rc){return rc;}
 				rc = InsertRecur(Path,k,ptr);
 				break;	
