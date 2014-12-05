@@ -749,6 +749,8 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	
 	// Get the node that we to insert into from the Path
 	SIZE_T L = Path.back();
+	cout << L <<endl;	
+
 	// remove from path the node we insert into
 	Path.pop_back();
 	BTreeNode b;
@@ -833,19 +835,25 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	}else{
 		// the node we want to insert into is full 
 		cout << "**The leaf is full" << endl;
-		
-		
+		cout << "**Fuckshit"<<endl;	
+		cout << "**L in else: "<<L<<endl;
+
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
-		cout << "**Node type is "<<b.info.nodetype;
+		cout << "**Node type is "<<b.info.nodetype << endl;
 		switch(b.info.nodetype)
 		{
+			cout << "**In nodetype switch"<<endl;
 			// if its the edge case that the leaf node is really a root
 			case BTREE_ROOT_NODE:
 			{
 
+				cout << "**In root case"<<endl;
+
 				if(isRootLeaf(b)){
+
+					cout << "**Is root leaf"<<endl;
 					
 					SIZE_T NewRoot;
 					SIZE_T NewLeaf;
