@@ -56,7 +56,9 @@ class BTreeIndex {
   ERROR_T      DeallocateNode(const SIZE_T &node);
   
   bool 	       isFull(const SIZE_T &Node) const;
-  
+ 
+  bool		isRootLeaf(BTreeNode b);
+ 
   ERROR_T      InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const;
 
   ERROR_T      LookupOrUpdateInternal(const SIZE_T &Node,

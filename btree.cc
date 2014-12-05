@@ -670,7 +670,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		// if the node is full
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
-		if (rc){return rc};
+		if (rc){return rc;}
 		switch(b.info.nodetype)
 		{
 			case BTREE_ROOT_NODE:
@@ -726,7 +726,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 }
 
 
-bool isRootLeaf(BTreeIndex b){
+bool BTreeIndex::isRootLeaf(BTreeNode b){
 	return b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2;
 }
 
