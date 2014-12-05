@@ -1,0 +1,6 @@
+./deletedisk mydisk
+./makedisk mydisk 1024 64 1 16 64 100 10 .28
+./btree_init 24 4 4
+./btree_insert mydisk 24 1 4
+...
+
