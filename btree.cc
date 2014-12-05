@@ -486,7 +486,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		InsertRecur(path,newK, newPtr);
 		if(rc){return rc;}
 	}
-	return ERROR_NORERROR;
+	return ERROR_NOERROR;
 }
 /*
 ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
