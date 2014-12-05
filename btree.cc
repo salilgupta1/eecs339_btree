@@ -855,6 +855,13 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					b.info.nodetype = BTREE_LEAF_NODE;
 					b.Serialize(buffercache, L);
+					
+					BTreeNode b2;
+                                        rc = b2.Unserialize(buffercache, NewLeaf);
+                                        
+                                        b2.info.nodetype = BTREE_LEAF_NODE;
+					b2.Serialize(buffercache, NewLeaf);
+					
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
@@ -879,17 +886,10 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					bNewRoot.SetPtr(1, NewLeaf);
 					
 					bNewRoot.info.numkeys++;
-
-					// open up the new leaf node
-                                        BTreeNode b2;
-                                        rc = b2.Unserialize(buffercache, NewLeaf);
                                         
-					// update the nodetypes 
-					b2.info.nodetype = BTREE_LEAF_NODE;
 					bNewRoot.info.nodetype = BTREE_ROOT_NODE;
 					
-					// write the nodes back to disk
-					rc = b2.Serialize(buffercache, NewLeaf);
+					// write the root back to disk
 					rc = bNewRoot.Serialize(buffercache, NewRoot);
 					
 					// update the superblock to let it know 
