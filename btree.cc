@@ -742,19 +742,22 @@ ERROR_T BTreeIndex::FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SI
 ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
 
-	// Find leaf node L (capacity n) that new key would be inserted in
 	ERROR_T rc;
 	list<SIZE_T> Path;
+	// Find the node where the key should be inserted (i.e. leaf node)
 	rc = InsertFindNode(Node, key, val, Path);
 	
+	// Get the node that we to insert into from the Path
 	SIZE_T L = Path.back();
+	// remove from path the node we insert into
 	Path.pop_back();
 	BTreeNode b;
 
-	// If L is not full
+	// If L is not full (i.e. the node we insert into)
 	if(!isFull(L)){
 		cout << "**Node not full" << endl;		
-
+		
+		// read data from node
 		rc = b.Unserialize(buffercache, L);
 
 		SIZE_T offset;
@@ -813,7 +816,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			if(rc){return rc;}
 		}
 
-		// Now that we've made room, nsert our new key/val
+		// Now that we've made room, insert our new key/val
 		// if it's the root acting as a leaf, we change its type temporarily so SetKeyVal allows it
 		if(isRootLeaf(b)){
 			b.info.nodetype = BTREE_LEAF_NODE;
@@ -828,15 +831,16 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		// write the data back to the disk
 		return b.Serialize(buffercache, L);
 	}else{
-
+		// the node we want to insert into is full 
 		cout << "**The leaf is full" << endl;
 		cout << "**Node type is "<<b.info.nodetype;
-		// the leaf is full
+		
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
 		switch(b.info.nodetype)
 		{
+			// if its the edge case that the leaf node is really a root
 			case BTREE_ROOT_NODE:
 			{
 
@@ -844,40 +848,51 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					SIZE_T NewRoot;
 					SIZE_T NewLeaf;
-
+					// make a new leaf and root node
 					rc = AllocateNode(NewRoot);
 					rc = AllocateNode(NewLeaf);
 					if(rc){return rc;}
-
+					
+					b.info.nodetype = BTREE_LEAF_NODE;
+					b.Serialize(buffercache, L);
+					// split our full node with our new leaf node
+					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
 					if(rc){return rc;}
 
-
+					// get the last key in our formerly full node
 					KEY_T k;
 				        rc = b.GetKey(b.info.numkeys-1,k);
                                	        if(rc){return rc;}
 				
-
+					// read data from the new root node
 					BTreeNode bNewRoot;
 					rc = bNewRoot.Unserialize(buffercache, NewRoot);
 					if(rc){return rc;}
-
+					
+					// set the key of the root node to be a last key of the formerly
+					// full node
 					bNewRoot.SetKey(0,k);
+					// point to the formerly full leaf node
 					bNewRoot.SetPtr(0, L);
+					// point to the new leaf node
 					bNewRoot.SetPtr(1, NewLeaf);
+					
 					bNewRoot.info.numkeys++;
 
-
+					// open up the new leaf node
                                         BTreeNode b2;
                                         rc = b2.Unserialize(buffercache, NewLeaf);
-
-					b.info.nodetype = BTREE_LEAF_NODE;
+                                        
+					// update the nodetypes 
 					b2.info.nodetype = BTREE_LEAF_NODE;
 					bNewRoot.info.nodetype = BTREE_ROOT_NODE;
-
-					rc = b.Serialize(buffercache, L);
+					
+					// write the nodes back to disk
 					rc = b2.Serialize(buffercache, NewLeaf);
 					rc = bNewRoot.Serialize(buffercache, NewRoot);
+					
+					// update the superblock to let it know 
 					superblock.info.rootnode = NewRoot;
 				
 				}
