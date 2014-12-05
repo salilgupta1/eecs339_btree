@@ -507,18 +507,18 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
         
         rc = original.Unserialize(buffercache, I1);
        	if(rc){return rc;}
-       	rc = newNode.Unserialize(buffercache, I2);
+       	rc = newInterior.Unserialize(buffercache, I2);
        	if(rc){return rc;}
        	
        	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
 	
 	// find the index to split on
-	firstHalfOfKeys = ceil((original.info.numkeys) / 2)
-	secondHalfOfKeys = floor((original.info.numkeys) / 2)
+	firstHalfOfKeys = ceil((original.info.numkeys) / 2);
+	secondHalfOfKeys = floor((original.info.numkeys) / 2);
 	
-	firstHalfOfptrs = ceil((original.info.numkeys + 2) / 2)
-	secondHalfOfptrs = floor((original.info.numkeys + 2) / 2)
+	firstHalfOfptrs = ceil((original.info.numkeys + 2) / 2);
+	secondHalfOfptrs = floor((original.info.numkeys + 2) / 2);
 	
 	// read the newInterior from disk
 	rc = newInterior.Unserialize(buffercache, L2);
@@ -529,32 +529,32 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 	
 	SIZE_T offset;
 	
-	SIZE_T newPtr;
-	KEY_T newKey; 
+	SIZE_T tempPtr;
+	KEY_T tempKey; 
        	
        	// split and move half of keys to new node as well as ptrs
        	for(offset=original.info.numkeys-secondHalfOfKeys; offset < original.info.numkeys;offset++)
        	{
        		// get from old interior node
-		rc = original.GetKey(offset, newKey);
-		rc = original.GetPtr(offset, newPtr);
+		rc = original.GetKey(offset, tempKey);
+		rc = original.GetPtr(offset, tempPtr);
 		if(rc){return rc;}
 		
 		// put into new interior node
-		rc = newInterior.SetKey(offset-firstHalfOfKeys,newKey);
-		rc = newInterior.SetPtr(offset-firstHalfOfKeys, newPtr);
+		rc = newInterior.SetKey(offset-firstHalfOfKeys,tempKey);
+		rc = newInterior.SetPtr(offset-firstHalfOfKeys, tempPtr);
 		if(rc){return rc;}
        	}
        	// the last ptr in the original node needs to be moved to the end of the newnode
-       	rc = original.GetPtr(original.info.numkeys,newPtr);
-       	rc = newInterior.SetPtr(secondHalfOfKeys,newPtr);
+       	rc = original.GetPtr(original.info.numkeys,tempPtr);
+       	rc = newInterior.SetPtr(secondHalfOfKeys,tempPtr);
        	if(rc){return rc;}
        	
        	original.info.numkeys = firstHalfOfKeys;
        	
        	// now find where to put the new key and value
 	rc = original.GetKey(firstHalfOfKeys - 1,tempKey);
-	if(rc){return rc};
+	if(rc){return rc;}
 	
 	// write the nodes back to disk
 	rc = original.Serialize(buffercache, I1);
@@ -565,11 +565,11 @@ ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
 	// insert our key and ptr into the correct 
 	if(k < tempKey || k == tempKey)
 	{
-		rc = FindAndInsertKeyPtr(I1,k,ptr)
+		rc = FindAndInsertKeyPtr(I1,k,ptr);
 	}
 	else
 	{
-		rc = FindAndInsertKeyPtr(I2,k,ptr)
+		rc = FindAndInsertKeyPtr(I2,k,ptr);
 	}
 	// send the last key, ptr of I1 to InsertRecur
 	BTreeNode b;
