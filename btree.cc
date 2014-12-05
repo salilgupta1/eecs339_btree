@@ -268,20 +268,12 @@ ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const V
   rc= b.Unserialize(buffercache,Node);
   Path.push_back(Node);
 
-  //cout <<"**Path "<< Node << endl;
-
   if (rc!=ERROR_NOERROR) { 
     return rc;
   }
 
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
-	if(superblock.info.freelist == 2){
-		cout << "**IT'S A ROOTLEAF!" <<endl;
-	}
-	return ERROR_NOERROR;
-
-
   case BTREE_INTERIOR_NODE:
     // Scan through key/ptr pairs
     //and recurse if possible
@@ -352,21 +344,21 @@ bool BTreeIndex::isFull(const SIZE_T &Node) const
 
 
 ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, const VALUE_T &v){
-	// distribute keys from one leaf to two keys
+	// distribute keys from one leaf to two keys and then insert the new key/val pair
 	BTreeNode original;
 	BTreeNode newLeaf;
 	
 	ERROR_T rc;
 	
 	rc = original.Unserialize(buffercache,L1);
-	if (rc){return rc};
+	if (rc){return rc;}
 	
 	SIZE_T firstHalfOfKeys;
 	SIZE_T secondHalfOfKeys;
 	
 	// find the index to split on
-	firstHalfOfKeys = floor((original.info.numkeys + 1)/2);//3
-	secondHalfOfKeys = ceil((original.info.numkeys + 1)/2);//4
+	firstHalfOfKeys = floor((original.info.numkeys + 1)/2);
+	secondHalfOfKeys = ceil((original.info.numkeys + 1)/2);
 	
 	// read the new leaf from disk
 	rc = newLeaf.Unserialize(buffercache, L2);
@@ -398,7 +390,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	
 	// now find where to put the new key and value
 	rc = original.GetKey(firstHalfOfKeys - 1,tempKey);
-	if(rc){return rc};
+	if(rc){return rc;}
 	
 	// write the nodes back to disk
 	rc = original.Serialize(buffercache, L1);
@@ -409,12 +401,12 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	if (k < tempKey || k == tempKey)
 	{
 		// we need to add our key to the first leaf
-		rc = FindAndInsertKey(L1,k,v);
+		rc = FindAndInsertKeyVal(L1,k,v);
 	}
 	else
 	{	
 		// we need to add our key to the second leaf
-		rc = FindAndInsertKey(L2,k,v);
+		rc = FindAndInsertKeyVal(L2,k,v);
 	}
 	if(rc){return rc;}
 	
@@ -422,27 +414,17 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	
 }
 
-ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, SIZE_T &L2)
+ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_T &ptr)
 {
-	SIZE_T p = path.pop_back();
+	SIZE_T p = path.back();
+	path.pop_back();
 	ERROR_T rc;
 	// pull the parent from the path
 	BTreeNode parent;
 	// read it from disk
 	rc = parent.Unserialize(buffercache, p);
 	if(rc){return rc;}
-	
-	// read child from disk
-	BTreeNode b;
-	rc = b.Unserialize(buffercache, L2);
-	if(rc){return rc;}
-	
-	// get the first key of the child
-	KEY_T firstKey;
-	SIZE_T ptr = &L2;
-	rc = b.GetKey(0,firstKey);
-	if(rc){return rc;}
-	
+
 	
 	if(!isFull(p))
 	{
@@ -459,7 +441,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, SIZE_T &L2)
 			if(rc){
 				return rc;
 			}
-			if (firstKey<tempKey || firstKey==tempKey)
+			if (k<tempKey || k==tempKey)
 			{
 				saveOffset = offset;
 				break;
@@ -480,8 +462,8 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, SIZE_T &L2)
 			rc = parent.SetPtr(offset,tempPtr);
 			if(rc){return rc;}
 		}
-		rc = parent.SetKey(saveOffset, firstKey);
-		rc = parent.SetPtr(saveoffset, ptr);
+		rc = parent.SetKey(saveOffset, k);
+		rc = parent.SetPtr(saveOffset, ptr);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is the root node 
@@ -497,23 +479,113 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, SIZE_T &L2)
 		rc = AllocateNode(newNode);
 		if (rc){return rc;}
 		// we need to take the parent and newNode and distribute the keys across the two
-		InsertAndSplitInterior(p,newNode, firstKey, ptr)
+		KEY_T newK;
+		SIZE_T newPtr;
+		rc = InsertAndSplitInterior(p,newNode, k, ptr, newK, newPtr);
+		InsertRecur(path,newK, newPtr);
+		if(rc){return rc;}
 	}
 }
-
+/*
 ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &L1, SIZE_T &L2){
-        
+        return ERROR_UNIM
 }
+*/
 
-
-ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2, const KEY_T &k, const SIZE_T &ptr)
+ERROR_T BTreeIndex::InsertAndSplitInterior(SIZE_T &I1,
+					   SIZE_T &I2,
+					   const KEY_T &k,
+					   const SIZE_T &ptr,
+					   const KEY_T &newK,
+					   const SIZE_T &newPtr)
 {
         // Distribute keys and pointers of I1, plus new one, into I1 and I2 (except for middle)
+
+        BTreeNode original;
+        BTreeNode newInterior;
+        ERROR_T rc;
+        
+        rc = original.Unserialize(buffercache, I1);
+       	if(rc){return rc;}
+       	rc = newInterior.Unserialize(buffercache, I2);
+       	if(rc){return rc;}
+       	
+       	SIZE_T firstHalfOfKeys;
+	SIZE_T secondHalfOfKeys;
+	SIZE_T firstHalfOfptrs;
+	SIZE_T secondHalfOfptrs;
+	
+	// find the index to split on
+	firstHalfOfKeys = ceil((original.info.numkeys) / 2);
+	secondHalfOfKeys = floor((original.info.numkeys) / 2);
+	
+	firstHalfOfptrs = ceil((original.info.numkeys + 2) / 2);
+	secondHalfOfptrs = floor((original.info.numkeys + 2) / 2);
+	
+	// read the newInterior from disk
+	rc = newInterior.Unserialize(buffercache, I2);
+	// set the new leaf's num of keys
+	newInterior.info.numkeys = secondHalfOfKeys;
+	
+	if(rc){return rc;}
+	
+	SIZE_T offset;
+	
+	SIZE_T tempPtr;
+	KEY_T tempKey; 
+       	
+       	// split and move half of keys to new node as well as ptrs
+       	for(offset=original.info.numkeys-secondHalfOfKeys; offset < original.info.numkeys;offset++)
+       	{
+       		// get from old interior node
+		rc = original.GetKey(offset, tempKey);
+		rc = original.GetPtr(offset, tempPtr);
+		if(rc){return rc;}
+		
+		// put into new interior node
+		rc = newInterior.SetKey(offset-firstHalfOfKeys,tempKey);
+		rc = newInterior.SetPtr(offset-firstHalfOfKeys, tempPtr);
+		if(rc){return rc;}
+       	}
+       	// the last ptr in the original node needs to be moved to the end of the newnode
+       	rc = original.GetPtr(original.info.numkeys,tempPtr);
+       	rc = newInterior.SetPtr(secondHalfOfKeys,tempPtr);
+       	if(rc){return rc;}
+       	
+       	original.info.numkeys = firstHalfOfKeys;
+       	
+       	// now find where to put the new key and value
+	rc = original.GetKey(firstHalfOfKeys - 1,tempKey);
+	if(rc){return rc;}
+	
+	// write the nodes back to disk
+	rc = original.Serialize(buffercache, I1);
+	if(rc){return rc;}
+	rc = newInterior.Serialize(buffercache,I2);
+	if(rc){return rc;}
+	
+	// insert our key and ptr into the correct 
+	if(k < tempKey || k == tempKey)
+	{
+		rc = FindAndInsertKeyPtr(I1,k,ptr);
+	}
+	else
+	{
+		rc = FindAndInsertKeyPtr(I2,k,ptr);
+	}
+	// send the last key, ptr of I1 to InsertRecur
+	BTreeNode b;
+	rc = b.Unserialize(buffercache, I1);
+	rc = b.GetKey(b.info.numkeys-1, newK);
+	rc = b.GetPtr(b.info.numkeys,newPtr);
+	b.info.numkeys--;
+	rc = b.Serialize(buffercache, I1);
+	return rc;
         
 }
 
 
-ERROR_T BTreeIndex::FindAndInsertKey(SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
+ERROR_T BTreeIndex::FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
 {
 	// find the place to insert a new key
 	BTreeNode b;
@@ -523,7 +595,7 @@ ERROR_T BTreeIndex::FindAndInsertKey(SIZE_T &Node, const KEY_T &key, const VALUE
 	
 	SIZE_T offset;
 	KEY_T tempKey;
-	SIZE_T saveOffset;
+	SIZE_T saveOffset = b.info.numkeys;
 	KeyValuePair swapKV;
 	VALUE_T tempVal;
 	
@@ -542,7 +614,7 @@ ERROR_T BTreeIndex::FindAndInsertKey(SIZE_T &Node, const KEY_T &key, const VALUE
 	}
 	
 	// move the keys down to allocate space for the new key
-	for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
+	for(offset = b.info.numkeys; offset > saveOffset; offset--)
 	{
 		rc = b.GetKey(offset-1, tempKey);
 		if(rc)
@@ -560,21 +632,67 @@ ERROR_T BTreeIndex::FindAndInsertKey(SIZE_T &Node, const KEY_T &key, const VALUE
        		{
         		return rc;
 		}
-		else
-		{
-			rc = b.SetKeyVal(offset, swapKV);
-			if(rc)
-			{
-				return rc;
-			}
-		}
 	}
 	// put the new key in
 	swapKV = KeyValuePair(key,val);
-	rc = b.SetKeyVal(saveOffset, swapKV)
+	rc = b.SetKeyVal(saveOffset, swapKV);
+	b.info.numkeys++;
+	rc = b.Serialize(buffercache, Node);
 	if(rc){ return rc;}
+	
+
 	return ERROR_NOERROR;
 	
+}
+
+ERROR_T BTreeIndex::FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SIZE_T &ptr)
+{
+	// find the place to insert a new key
+	BTreeNode b;
+	ERROR_T rc;
+	rc = b.Unserialize(buffercache, Node);
+	if (rc){return rc;}
+	
+	SIZE_T offset;
+	KEY_T tempKey;
+	SIZE_T saveOffset = b.info.numkeys;
+	SIZE_T tempPtr;
+	
+	// find the place to put the key
+	for(offset = 0; offset < b.info.numkeys; offset++)
+	{
+		rc = b.GetKey(offset, tempKey);
+		if(rc){
+			return rc;
+		}
+		if (key<tempKey || key==tempKey)
+		{
+			saveOffset = offset;
+			break;
+		}	
+	}
+	
+	// move the keys down to allocate space for the new key
+	for(offset = b.info.numkeys; offset > saveOffset; offset--)
+	{
+		// get the key and ptr
+		rc = b.GetKey(offset-1, tempKey);
+		rc = b.GetPtr(offset, tempPtr);
+		if (rc){return rc;}
+		
+		// move them down one from its original spot
+		rc = b.SetKey(offset, tempKey);
+		rc = b.SetPtr(offset+1, tempPtr);
+       		
+       		if(rc){return rc;}
+	}
+	rc = b.SetKey(saveOffset,key);
+	rc = b.SetPtr(saveOffset + 1,ptr);
+	b.info.numkeys++;
+	rc = b.Serialize(buffercache, Node);
+	if(rc){return rc;}
+
+	return ERROR_NOERROR;
 }
 
 ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val)
@@ -589,12 +707,11 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	Path.pop_back();
 	BTreeNode b;
 
-//	cout << "**Found node: "<< L << endl;;
-
 	// If L is not full
 	if(!isFull(L)){
-		cout << "**Node not full" << endl;		
-
+		cout << "Not full!" << endl;		
+		
+		// get data from node
 		rc = b.Unserialize(buffercache, L);
 
 		SIZE_T offset;
@@ -604,9 +721,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		KeyValuePair swapKV;
 		VALUE_T tempVal;
 
-		cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
-		
-		// search for the location to put the key
+		// search for the location to put the key into the node
 		for(offset = 0; offset<b.info.numkeys; offset++){
 			rc = b.GetKey(offset, tempKey);
 			if(rc){
@@ -619,55 +734,74 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 
-		cout << "**Inserting at position: " << saveOffset << endl;
+		cout << "Insert offset: " << saveOffset<<endl;
+		cout << "Num keys before insert: " << b.info.numkeys << endl;
 
 		// increment the number of keys in the node
 		b.info.numkeys++;
-		
-		// go through the keys and shift accordingly to allocate space for the new key
+		// go through the keys and move accordingly to allocate space for the new key
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
-			cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
-
+			cout << "In loop, offset is "<< offset <<endl;		
 			rc = b.GetKey(offset-1, tempKey);
-			if(rc){return rc;}
-
-			// if it's the root acting as a leaf, we change its type temporarily so GetVal doesn't freak out
-                        if(isRootLeaf(b)){
-                                b.info.nodetype = BTREE_LEAF_NODE;
-                                
-                                rc = b.GetVal(offset-1, tempVal);
-                                if(rc){return rc;}
-                                
-                                swapKV = KeyValuePair(tempKey, tempVal);
-                                rc = b.SetKeyVal(offset, swapKV);
-                                
-                                b.info.nodetype = BTREE_ROOT_NODE;
-                        }else{
-	                        rc = b.GetVal(offset-1, tempVal);
-	                        if(rc){return rc;}
-	                        
-	                        swapKV = KeyValuePair(tempKey, tempVal);
-	                        rc = b.SetKeyVal(offset, swapKV);
+			if(rc)
+			{
+				return rc;
 			}
-			if(rc){return rc;}
+			rc = b.GetVal(offset-1, tempVal);
+			if (rc)
+			{
+				return rc;	
+			}
+			swapKV = KeyValuePair(tempKey, tempVal);
+			
+			// If it's the beginning where root is a leaf, insert as leaf
+			if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
+				b.info.nodetype = BTREE_LEAF_NODE;
+				rc = b.SetKeyVal(offset, swapKV);
+               			if(rc)
+               			{
+                        		return rc;
+                		}
+				b.info.nodetype = BTREE_ROOT_NODE;
+			}
+			else
+			{
+				rc = b.SetKeyVal(offset, swapKV);
+				if(rc)
+				{
+					return rc;
+				}
+			}
 		}
 
-		// Now that we've made room, nsert our new key/val
-		// if it's the root acting as a leaf, we change its type temporarily so SetKeyVal allows it
-		if(isRootLeaf(b)){
+		cout << "setting new keyval pair"<<endl;
+		// insert our new key/val
+		
+		// If it's the beginning where root is a leaf, insert as leaf
+		if(b.info.nodetype == BTREE_ROOT_NODE  && superblock.info.freelist == 2){
 			b.info.nodetype = BTREE_LEAF_NODE;
 			rc = b.SetKeyVal(saveOffset, kv);
+               		if(rc)
+               		{
+                        	return rc;
+                	}
 			b.info.nodetype = BTREE_ROOT_NODE;
+			
 		}else{
+
 			rc = b.SetKeyVal(saveOffset, kv);
+			if(rc)
+			{
+				return rc;
+			}
 		}
-		if(rc){return rc;}
-		
 		// write the data back to the disk
 		return b.Serialize(buffercache, Node);
-	}else{
-		// if the node is full
+	}
+
+	// if the node is full
+	else{
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
@@ -676,26 +810,32 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			case BTREE_ROOT_NODE:
 			{
 				// if the node we are looking at is a root node
-				InsertAndSplitRoot();
+				// we need to split the root node
+				//InsertAndSplitRoot();
 				break;
 			}
-			default
+			default:
 			{
 				// otherwise we must be looking at a leaf node
 				SIZE_T L2;
 				// allocate space for a new leaf node
-				rc = AllocateNode(L2)
+				rc = AllocateNode(L2);
 				if(rc){return rc;}
 				// split the leaf and put half of keys into new leaf node
 				rc = InsertAndSplitLeaf(L,L2,key,val);
 				// go up the tree to its interior nodes and reshuffle things around
-				rc = InsertRecur(Path, L2);
+				KEY_T k;
+				SIZE_T ptr;
+				BTreeNode b;
+				rc = b.Unserialize(buffercache, L2);
+				rc = b.GetKey(0,k);
+				rc = b.GetPtr(0,ptr);
+				if(rc){return rc;}
+				rc = InsertRecur(Path,k,ptr);
 				break;	
 			}
 		}
 	}
-	
-	
 	// Else if L is full, aka has n keys already
 	// 	1. Split L: Find a node L2 from the free list 
 	//

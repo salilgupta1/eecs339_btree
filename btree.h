@@ -59,8 +59,19 @@ class BTreeIndex {
  
   bool		isRootLeaf(BTreeNode b);
  
-  ERROR_T      InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &val, list<SIZE_T> &Path) const;
-
+  ERROR_T      InsertFindNode(const SIZE_T &Node, const KEY_T &key, const VALUE_T &value, list<SIZE_T> &Path) const;
+  
+  ERROR_T      InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, const VALUE_T &v);
+  
+  ERROR_T      InsertAndSplitInterior(SIZE_T &I1, SIZE_T &I2, const KEY_T &k, const SIZE_T &ptr, const KEY_T &newK, const SIZE_T &newPtr);
+  
+  ERROR_T      InsertRecur(list<SIZE_T> &path, const KEY_T &k, const SIZE_T &ptr);
+  
+  ERROR_T      FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VALUE_T &val);
+  
+  ERROR_T      FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SIZE_T &ptr);
+  
+>>>>>>> 8049304b85c4956a1a3dd00ea183c62cd77a0c6d
   ERROR_T      LookupOrUpdateInternal(const SIZE_T &Node,
 				      const BTreeOp op, 
 				      const KEY_T &key,
