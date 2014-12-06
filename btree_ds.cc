@@ -97,14 +97,10 @@ BTreeNode & BTreeNode::operator=(const BTreeNode &rhs)
 
 ERROR_T BTreeNode::Serialize(BufferCache *b, const SIZE_T blocknum) const
 {
- cout <<"z";
   assert((unsigned)info.blocksize==b->GetBlockSize());
-	cout <<"a";
   Block block(sizeof(info)+info.GetNumDataBytes());
-cout <<"b";
   memcpy(block.data,&info,sizeof(info));
   if (info.nodetype!=BTREE_UNALLOCATED_BLOCK && info.nodetype!=BTREE_SUPERBLOCK) { 
-   	cout <<"c";
 	 memcpy(block.data+sizeof(info),data,info.GetNumDataBytes());
   }
 
@@ -151,6 +147,8 @@ char * BTreeNode::ResolveKey(const SIZE_T offset) const
     return data+sizeof(SIZE_T)+offset*(sizeof(SIZE_T)+info.keysize);
     break;
   case BTREE_LEAF_NODE:
+    cout << "offset: " <<offset<<endl;
+    cout << "numkeys: " << info.numkeys <<endl;
     assert(offset<info.numkeys);
     return data+sizeof(SIZE_T)+offset*(info.keysize+info.valuesize);
     break;
@@ -181,7 +179,7 @@ char * BTreeNode::ResolvePtr(const SIZE_T offset) const
 
 char * BTreeNode::ResolveVal(const SIZE_T offset) const
 {
-  cout << "**Node type: "<<info.nodetype<<"\n"<<endl;
+  cout << "****In ResolveVal: node type "<<info.nodetype<<"\n"<<endl;
   switch (info.nodetype) { 
   case BTREE_LEAF_NODE:
     assert(offset<info.numkeys);
