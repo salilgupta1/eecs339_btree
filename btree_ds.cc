@@ -97,13 +97,15 @@ BTreeNode & BTreeNode::operator=(const BTreeNode &rhs)
 
 ERROR_T BTreeNode::Serialize(BufferCache *b, const SIZE_T blocknum) const
 {
+ cout <<"z";
   assert((unsigned)info.blocksize==b->GetBlockSize());
-
+	cout <<"a";
   Block block(sizeof(info)+info.GetNumDataBytes());
-
+cout <<"b";
   memcpy(block.data,&info,sizeof(info));
   if (info.nodetype!=BTREE_UNALLOCATED_BLOCK && info.nodetype!=BTREE_SUPERBLOCK) { 
-    memcpy(block.data+sizeof(info),data,info.GetNumDataBytes());
+   	cout <<"c";
+	 memcpy(block.data+sizeof(info),data,info.GetNumDataBytes());
   }
 
   return b->WriteBlock(blocknum,block);

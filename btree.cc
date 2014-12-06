@@ -862,15 +862,28 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					rc = AllocateNode(NewLeaf);
 					if(rc){return rc;}
 					
+					cout << "**Allocated nodes" <<endl;
+						
+					cout << "**L:"<<L<<endl;
 					b.info.nodetype = BTREE_LEAF_NODE;
 					b.Serialize(buffercache, L);
 					
+					cout << "**b serialized" <<endl;
+
 					BTreeNode b2;
                                         rc = b2.Unserialize(buffercache, NewLeaf);
-                                        
-                                        b2.info.nodetype = BTREE_LEAF_NODE;
-					b2.Serialize(buffercache, NewLeaf);
-					
+        				if(rc){return rc;}                                
+	
+					cout << "**b2 unserialized" << endl;
+ 
+                                       // b2.info.nodetype = BTREE_LEAF_NODE;
+					cout << "**set node type" <<endl;
+					cout << "**NewRoot: " <<NewRoot <<endl;	
+					cout << "** NewLeaf: " << NewLeaf <<endl;
+					rc = b2.Serialize(buffercache, NewLeaf);
+					b2.Unserialize(buffercache, NewLeaf);
+					b2.info.nodetype = BTREE_LEAF_NODE;
+					b2.Serialize(buffercache, NewLeaf);	
 					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
