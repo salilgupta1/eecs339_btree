@@ -268,7 +268,7 @@ ERROR_T	BTreeIndex::InsertFindNode(const SIZE_T &Node, const KEY_T &key, const V
   rc= b.Unserialize(buffercache,Node);
   Path.push_back(Node);
 
-  cout << "**Pushed onto path: "<<Node<<endl;
+  // cout << "**Pushed onto path: "<<Node<<endl;
   if (rc!=ERROR_NOERROR) { 
     return rc;
   }
