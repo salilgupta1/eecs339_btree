@@ -369,6 +369,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	// read the new leaf from disk
 	rc = newLeaf.Unserialize(buffercache, L2);
 	// set the new leaf's num of keys
+	newLeaf.info.nodetype = BTREE_LEAF_NODE;
 	newLeaf.info.numkeys = secondHalfOfKeys;
 	
 	if(rc){return rc;}
@@ -870,9 +871,9 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					cout << "**b serialized" <<endl;
 
-					BTreeNode b2;
-                                        rc = b2.Unserialize(buffercache, NewLeaf);
-        				if(rc){return rc;}                                
+				//	BTreeNode b2;
+                                  //      rc = b2.Unserialize(buffercache, NewLeaf);
+        			//	if(rc){return rc;}                                
 	
 					cout << "**b2 unserialized" << endl;
  
@@ -880,10 +881,10 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					cout << "**set node type" <<endl;
 					cout << "**NewRoot: " <<NewRoot <<endl;	
 					cout << "** NewLeaf: " << NewLeaf <<endl;
-					rc = b2.Serialize(buffercache, NewLeaf);
-					b2.Unserialize(buffercache, NewLeaf);
-					b2.info.nodetype = BTREE_LEAF_NODE;
-					b2.Serialize(buffercache, NewLeaf);	
+				//	rc = b2.Serialize(buffercache, NewLeaf);
+				//	b2.Unserialize(buffercache, NewLeaf);
+				//	b2.info.nodetype = BTREE_LEAF_NODE;
+				//	b2.Serialize(buffercache, NewLeaf);	
 					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
