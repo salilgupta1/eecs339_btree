@@ -381,6 +381,7 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	// split the node into two leaves
 	for (offset = firstHalfOfKeys; offset < original.info.numkeys;offset++)
 	{
+		
 		// get from old leaf
 		rc = original.GetKey(offset, newKey);
 		rc = original.GetVal(offset, newVal);
@@ -516,11 +517,11 @@ ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &p, SIZE_T &NewInterior, SIZE_T &N
 	BTreeNode bNewRoot;
 	rc = bNewRoot.Unserialize(buffercache, NewRoot);
 	if(rc){return rc;}
-
+	bNewRoot.info.numkeys++;
 	bNewRoot.SetKey(0,key);
 	bNewRoot.SetPtr(0, p);
 	bNewRoot.SetPtr(1, NewInterior);
-	bNewRoot.info.numkeys++;
+	
 
 	BTreeNode b;
 	rc = b.Unserialize(buffercache, p);
@@ -731,9 +732,10 @@ ERROR_T BTreeIndex::FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SI
        		
        		if(rc){return rc;}
 	}
+	b.info.numkeys++;
 	rc = b.SetKey(saveOffset,key);
 	rc = b.SetPtr(saveOffset + 1,ptr);
-	b.info.numkeys++;
+	
 	rc = b.Serialize(buffercache, Node);
 	if(rc){return rc;}
 
@@ -888,6 +890,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					rc = bNewRoot.Unserialize(buffercache, NewRoot);
 					if(rc){return rc;}
 					
+					bNewRoot.info.numkeys++;
 					// set the key of the root node to be a last key of the formerly
 					// full node
 					bNewRoot.SetKey(0,k);
@@ -896,7 +899,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					// point to the new leaf node
 					bNewRoot.SetPtr(1, NewLeaf);
 					
-					bNewRoot.info.numkeys++;
+					
                                         
 					// write the root back to disk
 					rc = bNewRoot.Serialize(buffercache, NewRoot);
