@@ -1092,7 +1092,14 @@ ERROR_T BTreeIndex::Lookup(const KEY_T &key, VALUE_T &value)
 
 ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
 {
-  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);
+  VALUE_T val;
+  if(Lookup(key, val) == ERROR_NOERROR)
+  {
+  	return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);	
+  }
+  // if there is a duplicate key then we can't add it into the btree
+  return ERROR_CONFLICT;
+  
 }
   
 ERROR_T BTreeIndex::Update(const KEY_T &key, const VALUE_T &value)
