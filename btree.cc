@@ -435,7 +435,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	
 	if(!isFull(p))
 	{
-		cout << "I just split the leaves and the parent isn't full"<<endl;
+	//	cout << "I just split the leaves and the parent isn't full"<<endl;
 		// if the parent isn't full 
 		// then we put the first key into parent
 		SIZE_T offset;
@@ -765,7 +765,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	
 	// Get the node that we to insert into from the Path
 	SIZE_T L = Path.back();
-	cout << L <<endl;	
+//	cout << L <<endl;	
 
 	// remove from path the node we insert into
 	Path.pop_back();
@@ -773,7 +773,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 	// If L is not full (i.e. the node we insert into)
 	if(!isFull(L)){
-		cout << "**Node not full" << endl;		
+	//	cout << "**Node not full" << endl;		
 		
 		// read data from node
 		rc = b.Unserialize(buffercache, L);
@@ -785,7 +785,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		KeyValuePair swapKV;
 		VALUE_T tempVal;
 
-		cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
+	//	cout << "**Num keys in this node: " << b.info.numkeys << "/"<< b.info.GetNumSlotsAsLeaf()<<endl;		
 		
 		// search for the location to put the key
 		for(offset = 0; offset<b.info.numkeys; offset++){
@@ -800,7 +800,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			}
 		}
 
-		cout << "**Inserting at position: " << saveOffset << endl;
+	//	cout << "**Inserting at position: " << saveOffset << endl;
 
 		// increment the number of keys in the node
 		b.info.numkeys++;
@@ -808,7 +808,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		// go through the keys and shift accordingly to allocate space for the new key
 		for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 		{
-			cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
+		//	cout << "**Moving key at position "<<offset-1<<" to position "<< offset <<endl;		
 
 			rc = b.GetKey(offset-1, tempKey);
 			if(rc){return rc;}
@@ -840,7 +840,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 			b.info.nodetype = BTREE_LEAF_NODE;
 			rc = b.SetKeyVal(saveOffset, kv);
 			b.info.nodetype = BTREE_ROOT_NODE;
-			cout << "**Inserted into rootleaf"<<endl;
+		//	cout << "**Inserted into rootleaf"<<endl;
 		}else{
 			rc = b.SetKeyVal(saveOffset, kv);
 		}
@@ -850,24 +850,24 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		return b.Serialize(buffercache, L);
 	}else{
 		// the node we want to insert into is full 
-		cout << "**The leaf is full" << endl;
+	//	cout << "**The leaf is full" << endl;
 
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
 		if (rc){return rc;}
-		cout << "**Node type is "<<b.info.nodetype << endl;
+	//	cout << "**Node type is "<<b.info.nodetype << endl;
 		switch(b.info.nodetype)
 		{
-			cout << "**In nodetype switch"<<endl;
+	//		cout << "**In nodetype switch"<<endl;
 			// if its the edge case that the leaf node is really a root
 			case BTREE_ROOT_NODE:
 			{
 
-				cout << "**In root case"<<endl;
+	//			cout << "**In root case"<<endl;
 		
 				if(isRootLeaf(b)){
 
-					cout << "**Is root leaf"<<endl;
+	//				cout << "**Is root leaf"<<endl;
 					
 					SIZE_T NewRoot;
 					SIZE_T NewLeaf;
@@ -885,7 +885,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					b.info.nodetype = BTREE_LEAF_NODE;
 					b.Serialize(buffercache, L);
 					
-					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
+	//				cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
