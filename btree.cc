@@ -1071,7 +1071,7 @@ ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
   	return ERROR_CONFLICT;
   }
   // no duplicate
-  cout << "Root node" << superblock.info.rootnode;
+ // cout << "Root node" << superblock.info.rootnode;
   return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);	
   
 }
