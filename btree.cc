@@ -658,8 +658,9 @@ ERROR_T BTreeIndex::FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VA
 		}	
 	}
 	
+	b.info.numkeys++;
 	// move the keys down to allocate space for the new key
-	for(offset = b.info.numkeys; offset > saveOffset; offset--)
+	for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 	{
 		rc = b.GetKey(offset-1, tempKey);
 		if(rc)
@@ -679,7 +680,7 @@ ERROR_T BTreeIndex::FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VA
 		}
 	}
 	// put the new key in
-	b.info.numkeys++;
+	
 	swapKV = KeyValuePair(key,val);
 	rc = b.SetKeyVal(saveOffset, swapKV);
 	
@@ -717,9 +718,9 @@ ERROR_T BTreeIndex::FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SI
 			break;
 		}	
 	}
-	
+	b.info.numkeys++;
 	// move the keys down to allocate space for the new key
-	for(offset = b.info.numkeys; offset > saveOffset; offset--)
+	for(offset = b.info.numkeys-1; offset > saveOffset; offset--)
 	{
 		// get the key and ptr
 		rc = b.GetKey(offset-1, tempKey);
@@ -732,7 +733,7 @@ ERROR_T BTreeIndex::FindAndInsertKeyPtr(SIZE_T &Node, const KEY_T &key, const SI
        		
        		if(rc){return rc;}
 	}
-	b.info.numkeys++;
+	
 	rc = b.SetKey(saveOffset,key);
 	rc = b.SetPtr(saveOffset + 1,ptr);
 	
@@ -838,8 +839,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 	}else{
 		// the node we want to insert into is full 
 		cout << "**The leaf is full" << endl;
-		cout << "**Fuckshit"<<endl;	
-		cout << "**L in else: "<<L<<endl;
 
 		// read the data from the node
 		rc = b.Unserialize(buffercache, L);
