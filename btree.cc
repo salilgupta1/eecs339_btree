@@ -1168,7 +1168,7 @@ ERROR_T BTreeIndex::Display(ostream &o, BTreeDisplayType display_type) const
 
 
 
-  cout << "rootnode" << superblock.info.rootnode <<endl;
+  //cout << "rootnode" << superblock.info.rootnode <<endl;
 
   rc=DisplayInternal(superblock.info.rootnode,o,display_type);
   if (display_type==BTREE_DEPTH_DOT) { 
