@@ -879,10 +879,11 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
 					if(rc){return rc;}
-
+					b.Unserialize(buffercache, L);
 					// get the last key in our formerly full node
 					KEY_T k;
 				        rc = b.GetKey(b.info.numkeys-1,k);
+				        b.Serialize(buffercache, L);
                                	        if(rc){return rc;}
 				
 					// read data from the new root node
@@ -916,17 +917,20 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				SIZE_T L2;
 				// allocate space for a new leaf node
 				rc = AllocateNode(L2);
-				if(rc){return rc;}
+				// constructs the newLeaf
+				BTreeNode newLeaf = BTreeNode(BTREE_LEAF_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+				newLeaf.Serialize(buffercache, L2);
+				
 				// split the leaf and put half of keys into new leaf node
 				rc = InsertAndSplitLeaf(L,L2,key,val);
 				// go up the tree to its interior nodes and reshuffle things around
 				KEY_T k;
 				SIZE_T ptr;
-				BTreeNode b2;
-				rc = b2.Unserialize(buffercache, L2);
-				b2.info.nodetype = BTREE_LEAF_NODE;
-				rc = b2.GetKey(0,k);
-				rc = b2.GetPtr(0,ptr);
+				newLeaf.Unserialize(buffercache, L2);
+
+				rc = newLeaf.GetKey(0,k);
+				rc = newLeaf.GetPtr(0,ptr);
+				newLeaf.Serialize(buffercache,L2);
 				if(rc){return rc;}
 				rc = InsertRecur(Path,k,ptr);
 				break;	
