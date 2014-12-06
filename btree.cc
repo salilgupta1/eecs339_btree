@@ -678,9 +678,10 @@ ERROR_T BTreeIndex::FindAndInsertKeyVal(SIZE_T &Node, const KEY_T &key, const VA
 		}
 	}
 	// put the new key in
+	b.info.numkeys++;
 	swapKV = KeyValuePair(key,val);
 	rc = b.SetKeyVal(saveOffset, swapKV);
-	b.info.numkeys++;
+	
 	rc = b.Serialize(buffercache, Node);
 	if(rc){ return rc;}
 	
