@@ -1127,12 +1127,12 @@ ERROR_T BTreeIndex::DisplayInternal(const SIZE_T &node,
   
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
-  	if(superblock.info.freelist == 2){
-  		return ERROR_NOERROR;
-  	}
   case BTREE_INTERIOR_NODE:
     if (b.info.numkeys>0) { 
       for (offset=0;offset<=b.info.numkeys;offset++) { 
+      	if(superblock.info.freelist == 2){
+  		continue;
+  	}
 	rc=b.GetPtr(offset,ptr);
 	if (rc) { return rc; }
 	if (display_type==BTREE_DEPTH_DOT) { 
