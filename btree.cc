@@ -959,33 +959,6 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 
 	return rc || ERROR_NOERROR;
 
-	// Else if L is full, aka has n keys already
-	// 	1. Split L: Find a node L2 from the free list 
-	//
-	//	2. Divide the keys: <PASS L AND L2 INTO InsertAndSplitLeaf()>
-	//		First ceil (n+1)/2 key-pointer pairs remain in L
-	//		Last floor (n+1)/2 key-pointer pairs go into L2
-	//
-	//	3. Insert (first key of?) L2 into parent node P: <InsertRecur()>
-	//		If there is space in node P
-	//			Insert key-pointer pair to L2
-	//			Done
-	//		**NOTE**: IF ROOT HAS DIFFERENT STANDARDS FOR 'FULL', THIS NEEDS TO BE STRUCTURED DIFFERENTLY
-	//		Else if there is no space and this is root: <InsertAndSplitRoot()>
-	//			Do something special
-	//			Done
-	//		Else if there is no space and this is not root: 
-	//			 Create new interior node P2 (same level as P)
-	//			 
-	//			 First ceil (n+2)/2 pointers stay in P
-	//			 Last floor (n+2)/2 pointers move to P2
-	//
-	//			 First ceil (n/2) keys stay in P
-	//			 Last floor (n/2) keys move to P2
-	//			 K = leftover middle key indicating smallest key reachable via P2
-	//
-	//			 Repeat this step where parent is parent of P and L2 is K <PASS parent AND K INTO InsertRecur()>
-	//
 }
 
 
