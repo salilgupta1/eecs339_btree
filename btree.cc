@@ -1124,9 +1124,12 @@ ERROR_T BTreeIndex::DisplayInternal(const SIZE_T &node,
   if (display_type!=BTREE_SORTED_KEYVAL) {
     o << endl;
   }
-
+  
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
+  	if(superblock.info.freelist == 2){
+  		return ERROR_NOERROR;
+  	}
   case BTREE_INTERIOR_NODE:
     if (b.info.numkeys>0) { 
       for (offset=0;offset<=b.info.numkeys;offset++) { 
