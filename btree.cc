@@ -499,6 +499,7 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 		newRoot.Serialize(buffercache, NewRoot);
 		
 		superblock.info.rootnode = NewRoot;
+		superblock.Serialize(buffercache, superblock_index);
 		if (rc){return rc;}
 		
 		// we need to take the parent and newNode and distribute the keys across the two
@@ -554,6 +555,7 @@ ERROR_T BTreeIndex::InsertAndSplitRoot(SIZE_T &p, SIZE_T &NewInterior, SIZE_T &N
 	rc = b2.Serialize(buffercache, NewInterior);
 	rc = bNewRoot.Serialize(buffercache, NewRoot);
 	superblock.info.rootnode = NewRoot;
+	superblock.Serialize(buffercache, superblock_index);
 	
         return rc;
 }
@@ -924,6 +926,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					// update the superblock to let it know 
 					superblock.info.rootnode = NewRoot;
+					superblock.Serialize(buffercache, superblock_index);
 					
 				}
 				break;
@@ -953,11 +956,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 		}
 	}
 
-
-
-	rc = superblock.Serialize(buffercache, superblock_index);
-
-	return rc || ERROR_NOERROR;
+	return ERROR_NOERROR;
 
 }
 
