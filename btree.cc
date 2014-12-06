@@ -435,11 +435,12 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	
 	if(!isFull(p))
 	{
+		cout << "I just split the leaves and the parent isn't full"<<endl;
 		// if the parent isn't full 
 		// then we put the first key into parent
 		SIZE_T offset;
 		KEY_T tempKey;
-		SIZE_T saveOffset;
+		SIZE_T saveOffset = parent.info.numkeys;
 		SIZE_T tempPtr;
 		// find where in parent to put the first key
 		for(offset = 0; offset < parent.info.numkeys; offset++)
