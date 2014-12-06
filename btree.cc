@@ -202,7 +202,12 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
   if (rc!=ERROR_NOERROR) { 
     return rc;
   }
-
+  int rootLeafFlag = 0;
+  if(superblock.info.freelist==2 and b.info.nodetype == BTREE_ROOT_NODE)
+  {
+  	rootLeafFlag = 1;
+  	b.info.nodetype = BTREE_LEAF_NODE;
+  }
   switch (b.info.nodetype) { 
   case BTREE_ROOT_NODE:
   case BTREE_INTERIOR_NODE:
@@ -237,10 +242,11 @@ ERROR_T BTreeIndex::LookupOrUpdateInternal(const SIZE_T &node,
       if (rc) {  return rc; }
       if (testkey==key) { 
 	if (op==BTREE_OP_LOOKUP) { 
-	  return b.GetVal(offset,value);
+		return b.GetVal(offset,value);
 	} else { 
 	  rc= b.SetVal(offset,value);
 	  if(rc){return rc;}
+	  if(rootLeafFlag){b.info.nodetype = BTREE_ROOT_NODE;}
 	  return b.Serialize(buffercache,node);
 	}     
       }
