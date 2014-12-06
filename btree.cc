@@ -941,7 +941,7 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				rc = newLeaf.GetKey(0,k);
 				newLeaf.Serialize(buffercache,L2);
 				if(rc){return rc;}
-				rc = InsertRecur(Path,k,newLeaf);
+				rc = InsertRecur(Path,k,L2);
 				break;	
 			}
 		}
