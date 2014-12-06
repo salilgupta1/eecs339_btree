@@ -1165,14 +1165,11 @@ ERROR_T BTreeIndex::Display(ostream &o, BTreeDisplayType display_type) const
   if (display_type==BTREE_DEPTH_DOT) { 
     o << "digraph tree { \n";
   }
-  BTreeNode b; 
-  b.Unserialize(buffercache, superblock.info.rootnode);
-  VALUE_T val;
-  b.GetVal(0, val);
-  cout << "Node type"<< b.info.nodetype <<endl;
-  cout << "Freelist"<< b.info.freelist <<endl;
-  cout << "rootnode" << b.info.rootnode <<endl;
-  cout << "value at 0" << val << endl;
+
+
+
+  cout << "rootnode" << superblock.info.rootnode <<endl;
+
   rc=DisplayInternal(superblock.info.rootnode,o,display_type);
   if (display_type==BTREE_DEPTH_DOT) { 
     o << "}\n";
