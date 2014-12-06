@@ -147,8 +147,8 @@ char * BTreeNode::ResolveKey(const SIZE_T offset) const
     return data+sizeof(SIZE_T)+offset*(sizeof(SIZE_T)+info.keysize);
     break;
   case BTREE_LEAF_NODE:
-    cout << "offset: " <<offset<<endl;
-    cout << "numkeys: " << info.numkeys <<endl;
+    // cout << "offset: " <<offset<<endl;
+    // cout << "numkeys: " << info.numkeys <<endl;
     assert(offset<info.numkeys);
     return data+sizeof(SIZE_T)+offset*(info.keysize+info.valuesize);
     break;
@@ -179,7 +179,7 @@ char * BTreeNode::ResolvePtr(const SIZE_T offset) const
 
 char * BTreeNode::ResolveVal(const SIZE_T offset) const
 {
-  cout << "****In ResolveVal: node type "<<info.nodetype<<"\n"<<endl;
+
   switch (info.nodetype) { 
   case BTREE_LEAF_NODE:
     assert(offset<info.numkeys);
