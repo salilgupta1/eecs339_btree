@@ -1071,6 +1071,7 @@ ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
   	return ERROR_CONFLICT;
   }
   // no duplicate
+  cout << "Root node" << superblock.info.rootnode;
   return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);	
   
 }
@@ -1164,6 +1165,7 @@ ERROR_T BTreeIndex::Display(ostream &o, BTreeDisplayType display_type) const
   if (display_type==BTREE_DEPTH_DOT) { 
     o << "digraph tree { \n";
   }
+  cout << "RootNode"<< superblock.info.rootnode;
   rc=DisplayInternal(superblock.info.rootnode,o,display_type);
   if (display_type==BTREE_DEPTH_DOT) { 
     o << "}\n";
