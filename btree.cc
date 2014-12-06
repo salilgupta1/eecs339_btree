@@ -1068,10 +1068,11 @@ ERROR_T BTreeIndex::Insert(const KEY_T &key, const VALUE_T &value)
   VALUE_T val;
   if(Lookup(key, val) == ERROR_NOERROR)
   {
-  	return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);	
+  	// we found a duplicate
+  	return ERROR_CONFLICT;
   }
-  // if there is a duplicate key then we can't add it into the btree
-  return ERROR_CONFLICT;
+  // no duplicate
+  return InsertInternal(superblock.info.rootnode, key, (VALUE_T&) value);	
   
 }
   
