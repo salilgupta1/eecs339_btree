@@ -478,30 +478,41 @@ ERROR_T BTreeIndex::InsertRecur(list<SIZE_T> &path, const KEY_T &k , const SIZE_
 	// if the parent is full and it is the root node 
 	else if(parent.info.nodetype == BTREE_ROOT_NODE)
 	{
-		SIZE_T NewNode;
+		SIZE_T NewInterior;
 		//we need to create a new interior node
-		rc = AllocateNode(NewNode);
+		rc = AllocateNode(NewInterior);
 		
 		SIZE_T NewRoot;
 		//we need to create a new root node
 		rc = AllocateNode(NewRoot);
+		
+		BTreeNode newInterior = BTreeNode(BTREE_INTERIOR_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+		newInterior.Serialize(buffercache, NewInterior);
+		
+		BTreeNode newRoot = BTreeNode(BTREE_ROOT_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+		newRoot.Serialize(buffercache, NewRoot);
+		
+		superblock.info.rootnode = NewRoot;
 		if (rc){return rc;}
 		
 		// we need to take the parent and newNode and distribute the keys across the two
-		rc = InsertAndSplitRoot(p, NewNode, NewRoot, k, ptr);
+		rc = InsertAndSplitRoot(p, NewInterior, NewRoot, k, ptr);
 		if(rc){return rc;}
 	}
 	// if the parent is full and it is an interior node
 	else
 	{
-		SIZE_T newNode;
+		SIZE_T NewInterior;
 		// we need to create a new interior node
-		rc = AllocateNode(newNode);
+		rc = AllocateNode(NewInterior);
+		BTreeNode newInterior = BTreeNode(BTREE_INTERIOR_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+		newInterior.Serialize(buffercache, NewInterior);
+		
 		if (rc){return rc;}
 		// we need to take the parent and newNode and distribute the keys across the two
 		KEY_T newK;
-		rc = InsertAndSplitInterior(p, newNode, k, ptr, newK);
-		rc = InsertRecur(path, newK, newNode);
+		rc = InsertAndSplitInterior(p, NewInterior, k, ptr, newK);
+		rc = InsertRecur(path, newK, NewInterior);
 		if(rc){return rc;}
 	}
 	return ERROR_NOERROR;
@@ -879,11 +890,11 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					// insert our key and value in the appropriate leaf
 					rc = InsertAndSplitLeaf(L,NewLeaf,key,val);
 					if(rc){return rc;}
-					b.Unserialize(buffercache, L);
+					newLeaf.Unserialize(buffercache, NewLeaf);
 					// get the last key in our formerly full node
 					KEY_T k;
-				        rc = b.GetKey(b.info.numkeys-1,k);
-				        b.Serialize(buffercache, L);
+				        rc = newLeaf.GetKey(0,k);
+				        newLeaf.Serialize(buffercache, NewLeaf);
                                	        if(rc){return rc;}
 				
 					// read data from the new root node
@@ -925,14 +936,12 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 				rc = InsertAndSplitLeaf(L,L2,key,val);
 				// go up the tree to its interior nodes and reshuffle things around
 				KEY_T k;
-				SIZE_T ptr;
 				newLeaf.Unserialize(buffercache, L2);
 
 				rc = newLeaf.GetKey(0,k);
-				rc = newLeaf.GetPtr(0,ptr);
 				newLeaf.Serialize(buffercache,L2);
 				if(rc){return rc;}
-				rc = InsertRecur(Path,k,ptr);
+				rc = InsertRecur(Path,k,newLeaf);
 				break;	
 			}
 		}
