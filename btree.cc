@@ -369,7 +369,6 @@ ERROR_T BTreeIndex::InsertAndSplitLeaf(SIZE_T &L1, SIZE_T &L2, const KEY_T &k, c
 	// read the new leaf from disk
 	rc = newLeaf.Unserialize(buffercache, L2);
 	// set the new leaf's num of keys
-	newLeaf.info.nodetype = BTREE_LEAF_NODE;
 	newLeaf.info.numkeys = secondHalfOfKeys;
 	
 	if(rc){return rc;}
@@ -858,10 +857,16 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					SIZE_T NewRoot;
 					SIZE_T NewLeaf;
+					
 					// make a new leaf and root node
 					rc = AllocateNode(NewRoot);
 					rc = AllocateNode(NewLeaf);
-					if(rc){return rc;}
+					
+					BTreeNode newRoot = BTreeNode(BTREE_ROOT_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+					BTreeNode newLeaf = BTreeNode(BTREE_LEAF_NODE, superblock.info.keysize, superblock.info.valuesize, superblock.info.blocksize);
+					
+					newRoot.Serialize(buffercache, NewRoot);
+					newLeaf.Serialize(buffercache,NewLeaf);
 					
 					cout << "**Allocated nodes" <<endl;
 						
@@ -871,20 +876,11 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					cout << "**b serialized" <<endl;
 
-				//	BTreeNode b2;
-                                  //      rc = b2.Unserialize(buffercache, NewLeaf);
-        			//	if(rc){return rc;}                                
-	
-					cout << "**b2 unserialized" << endl;
- 
-                                       // b2.info.nodetype = BTREE_LEAF_NODE;
+
 					cout << "**set node type" <<endl;
 					cout << "**NewRoot: " <<NewRoot <<endl;	
 					cout << "** NewLeaf: " << NewLeaf <<endl;
-				//	rc = b2.Serialize(buffercache, NewLeaf);
-				//	b2.Unserialize(buffercache, NewLeaf);
-				//	b2.info.nodetype = BTREE_LEAF_NODE;
-				//	b2.Serialize(buffercache, NewLeaf);	
+		
 					cout << "**About to go into InsertAndSplitLeaf from InsertInternal" << endl;
 					// split our full node with our new leaf node
 					// insert our key and value in the appropriate leaf
@@ -911,14 +907,12 @@ ERROR_T BTreeIndex::InsertInternal(const SIZE_T &Node, const KEY_T &key, const V
 					
 					bNewRoot.info.numkeys++;
                                         
-					bNewRoot.info.nodetype = BTREE_ROOT_NODE;
-					
 					// write the root back to disk
 					rc = bNewRoot.Serialize(buffercache, NewRoot);
 					
 					// update the superblock to let it know 
 					superblock.info.rootnode = NewRoot;
-				
+					
 				}
 				break;
 			}
